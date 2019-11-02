@@ -4,6 +4,11 @@ pragma solidity ^0.5.8;
 contract Battle {
     bytes32 private constant ZERO_BYTES32 = bytes32(0);
 
+    event BattleWon (
+        address winner,
+        uint256 battleId
+    );
+
     event BattleCreated (
         address player,
         uint256 battleId
@@ -29,6 +34,7 @@ contract Battle {
         uint256[10] playerOneRolls;
         uint256[10] playerTwoRolls;
         bool created;
+        bool firstRollsSubmitted;
     }
 
     Battle[] public battles;
@@ -56,7 +62,7 @@ contract Battle {
                 canResolve: false,
                 finished: false,
                 battleParamsIdx: battles.length
-                });
+            });
             battles.push(battle);
             emit BattleCreated(msg.sender, battles.length);
         } else {
@@ -88,11 +94,12 @@ contract Battle {
             uint256[10] memory emptyValues = new uint256[10](0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
             BattleParams memory battleParams = BattleParams({
                 created: true,
+                firstRollsSubmitted: false,
                 playerOneHashes: emptyBytes,
                 playerTwoHashes: emptyBytes,
                 playerOneRolls: emptyValues,
                 playerTwoRolls: emptyValues
-                });
+            });
             if (msg.sender == battles[battleId].playerOne) {
                 battleParams.playerOneHashes = hashes;
             } else if (msg.sender == battles[battleId].playerTwo) {
@@ -117,7 +124,50 @@ contract Battle {
     function submitBattleResolution(
         uint256[10] resolutionValues,
         uint256 battleId
-    ) {
+    ) public {
+        require(battle[battleId].canResolve == true, "Battle can not be resolved yet");
+        require(!battles[battleId].finished, "Battle already finished");
+        if (!battleParamsArr[battleId].firstRollsSubmitted) {
+            bytes32[10] memory hashes;
+            if (msg.sender == battles[battleId].playerOne) {
+                battleParamsArr[battleId].playerOneRolls = resolutionValues;
+                hashes = battleParamsArr[battleId].playerOneHashes;
+            } else if (msg.sender == battles[battleId].playerTwo) {
+                battleParamsArr[battleId].playerTwoRolls = resolutionValues;
+                hashes = battleParamsArr[battleId].playerTwoHashes;
+            } else {
+                revert("Invalid player");
+            }
 
+            for (uint256 i = 0; i < 10; i++) {
+                require(hashes[i] == keccak256(resolutionValues[i]), "Submitted value does not match preimage");
+            }
+            battleParamsArr[battleId].firstRollsSubmitted = true;
+        } else {
+            bytes32[10] memory hashes;
+            if (msg.sender == battles[battleId].playerOne) {
+                hashes = battleParamsArr[battleId].playerOneHashes;
+            } else if (msg.sender == battles[battleId].playerTwo) {
+                hashes = battleParamsArr[battleId].playerTwoHashes;
+            } else {
+                revert("Invalid player");
+            }
+
+            for (uint256 i = 0; i < 10; i++) {
+                require(hashes[i] == keccak256(resolutionValues[i]), "Submitted value does not match preimage");
+            }
+            battles[battleId].finished = true;
+            emit BattleWon(
+                determineWinner(resolutionValues, battleId),
+                battleId
+            );
+        }
+    }
+
+    function determineWinner(
+        uint256[10] resolutionValues,
+        uint256 battleId
+    ) internal view returns (address) {
+        return battles[battleId].playerOne;
     }
 }
