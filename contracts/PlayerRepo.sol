@@ -70,8 +70,8 @@ contract PlayerRepo {
                 kittyId
             );
         Player memory player = Player({
-            weapon: address(0),
-            armor: address(0),
+            weapon: uint256(0),
+            armor: uint256(0),
             kittyId: kittyId,
             enabled: true
         });
