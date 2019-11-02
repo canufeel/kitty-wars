@@ -32,6 +32,11 @@ contract Item is ERC721 {
     // itemId => address
     mapping (uint256 => address) itemToApproved;
 
+    constructor() public {
+        Item zeroItem = new Item(Type.WEAPON, 0);
+        allItems.push(zeroItem);
+    }
+
     function transfer(address _to, uint256 _tokenId) external {
         require(_to != address(0), "No zero address!");
         require(_owns(msg.sender, _tokenId), "You do not own this cat!");
@@ -71,8 +76,6 @@ contract Item is ERC721 {
             type == Type.WEAPON || type == Type.ARMOR,
             "Wrong item type. Only Weapon (0) or Armor (1) available"
         );
-
-        // TODO: add logic for no zero element in allItems array!
 
         Item newItem = new Item(type, power);
         allItems.push(newItem);
