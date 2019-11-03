@@ -1,7 +1,7 @@
 pragma solidity ^0.5.8;
 
 import "./IPlayerRepo.sol";
-
+import "./ItemOwnership.sol";
 
 contract Battle {
     bytes32 private constant ZERO_BYTES32 = bytes32(0);
@@ -252,7 +252,7 @@ contract Battle {
         uint256[10] memory resolutionValues,
         uint256 battleId
     ) internal view returns (address) {
-        uint256[10] existingRolls;
+        uint256[10] memory existingRolls;
         if (msg.sender == battles[battleId].playerOne) {
             existingRolls = battleParamsArr[battleId].playerTwoRolls;
         } else if (msg.sender == battles[battleId].playerTwo) {
@@ -265,12 +265,10 @@ contract Battle {
             uint256 weaponId1,
             uint256 armorId1,
             ,
-            ,
         ) = IPlayerRepo(playerRepo).getPlayer(battles[battleId].playerOne);
         (
             uint256 weaponId2,
             uint256 armorId2,
-            ,
             ,
         ) = IPlayerRepo(playerRepo).getPlayer(battles[battleId].playerOne);
 
