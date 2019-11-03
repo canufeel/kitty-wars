@@ -261,49 +261,27 @@ contract Battle {
             revert("Invalid player");
         }
 
-        (
-            uint256 weaponId1,
-            uint256 armorId1,
-            ,
-        ) = IPlayerRepo(playerRepo).getPlayer(battles[battleId].playerOne);
-        (
-            uint256 weaponId2,
-            uint256 armorId2,
-            ,
-        ) = IPlayerRepo(playerRepo).getPlayer(battles[battleId].playerOne);
+        uint256[4] memory modifiers = getModifiers(battleId);
 
-        uint256[] memory rounds = new uint256[](10);
-        uint256[] memory modifiers = new uint256[](4);
-
-        (, modifiers[0]) = ItemOwnership(itemOwnership).getItem(weaponId1);
-        (, modifiers[1]) = ItemOwnership(itemOwnership).getItem(armorId1);
-        (, modifiers[2]) = ItemOwnership(itemOwnership).getItem(weaponId2);
-        (, modifiers[3]) = ItemOwnership(itemOwnership).getItem(armorId2);
-
-        uint256 round;
         // 0 - playerOneDamage, 1 - playerTwoDamage
         uint256[] memory totalDamages = new uint256[](2);
         uint256 currentDamage = 0;
 
-        for (uint256 i = 0; i < 10; i++) {
-            round = (existingRolls[i] % 100 + resolutionValues[i] % 100) % 100;
+        for (uint256 i = 0; i < 10; i += 2) {
+            uint256 roundA = (existingRolls[i] % 100 + resolutionValues[i] % 100) % 100;
+            uint256 roundD = (existingRolls[i + 1] % 100 + resolutionValues[i + 1] % 100) % 100;
 
-            if (i % 2 != 0) {
-                currentDamage = round * modifiers[0] - round * modifiers[1];
-                currentDamage = currentDamage <= 0 ? 0 : currentDamage;
+            if (i % 4 != 0 && i != 9) {
+                currentDamage = roundA * modifiers[0];
+                currentDamage = currentDamage <= roundD * modifiers[1] ? 0 : currentDamage - roundD * modifiers[1];
                 totalDamages[0] = totalDamages[0] + currentDamage;
+            } else if (i != 9) {
+                currentDamage = roundA * modifiers[2];
+                currentDamage = currentDamage <= roundD * modifiers[3] ? 0 : currentDamage - roundD * modifiers[3];
+                totalDamages[1] = totalDamages[1] + currentDamage;
             } else {
-                currentDamage = round * modifiers[2] - round * modifiers[3];
-                currentDamage = currentDamage <= 0 ? 0 : currentDamage;
-                totalDamages[1] = totalDamages[1] + currentDamage;
-            }
-
-            if (i == 9) {
-                currentDamage = round * modifiers[0];
-                totalDamages[0] = totalDamages[0] + currentDamage;
-            } else if (i == 10) {
-                currentDamage = round * modifiers[2];
-                totalDamages[1] = totalDamages[1] + currentDamage;
+                totalDamages[0] = totalDamages[0] + roundA * modifiers[0];
+                totalDamages[1] = totalDamages[1] + roundD * modifiers[2];
             }
         }
 
@@ -317,5 +295,27 @@ contract Battle {
         }
 
         return winner;
+    }
+
+    function getModifiers(
+        uint256 battleId
+    ) internal view returns (uint256[4] memory) {
+        (
+            uint256 weaponId1,
+            uint256 armorId1,
+            ,
+        ) = IPlayerRepo(playerRepo).getPlayer(battles[battleId].playerOne);
+        (
+            uint256 weaponId2,
+            uint256 armorId2,
+            ,
+        ) = IPlayerRepo(playerRepo).getPlayer(battles[battleId].playerOne);
+        uint256[4] memory modifiers = [ZERO_UINT256, ZERO_UINT256, ZERO_UINT256, ZERO_UINT256];
+
+        (, modifiers[0]) = ItemOwnership(itemOwnership).getItem(weaponId1);
+        (, modifiers[1]) = ItemOwnership(itemOwnership).getItem(armorId1);
+        (, modifiers[2]) = ItemOwnership(itemOwnership).getItem(weaponId2);
+        (, modifiers[3]) = ItemOwnership(itemOwnership).getItem(armorId2);
+        return modifiers;
     }
 }
