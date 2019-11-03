@@ -382,6 +382,8 @@ contract('Kitty', function ([
     } else {
       throw Error('Draw!');
     }
+    console.log(totalDamageOne.toString());
+    console.log(totalDamageTwo.toString());
 
     assert.equal(winnerFromContract, testWinner);
   });
