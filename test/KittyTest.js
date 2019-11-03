@@ -1,6 +1,6 @@
 const KittyOwnership = artifacts.require("KittyOwnership.sol");
 const PlayerRepo = artifacts.require('./PlayerRepo.sol');
-const Item = artifacts.require('./Item.sol');
+const Item = artifacts.require('./ItemOwnership.sol');
 
 const createKittyContract = () => KittyOwnership.new();
 

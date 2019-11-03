@@ -10,8 +10,8 @@ contract PlayerRepo {
     );
 
     struct Player {
-        uint256 weapon;
-        uint256 armor;
+        uint256 weaponId;
+        uint256 armorId;
         uint256 kittyId;
         bool enabled;
     }
@@ -65,5 +65,23 @@ contract PlayerRepo {
         armorId = players[playerAddress].armor;
         kittyId = players[playerAddress].kittyId;
         enabled = players[playerAddress].enabled;
+    }
+
+    function assignWeapon(
+        uint256 itemId,
+        address itemTokenAddress,
+        uint256 kittyId,
+        address kittyTokenAddress
+    ) public {
+        require(
+            ERC721(itemTokenAddress).ownerOf(itemId) == msg.sender,
+            "You have to own the Item."
+        );
+        require(
+            ERC721(kittyTokenAddress).ownerOf(kittyId) == msg.sender,
+            "You have to own the Kitty."
+        );
+
+
     }
 }
