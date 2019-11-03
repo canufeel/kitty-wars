@@ -121,10 +121,11 @@ contract('Kitty', function ([
       kittyIdOne,
       { from: kittyOneOwner }
     );
-    await playerRepo.addPlayer(
+    await kittyContract.approve(
       playerRepo.address,
       kittyIdTwo,
-      { from: kittyTwoOwner });
+      { from: kittyTwoOwner }
+    );
     await playerRepo.addPlayer(kittyIdTwo);
     await playerRepo.addPlayer(kittyIdOne);
     debugger;

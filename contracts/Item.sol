@@ -68,6 +68,12 @@ contract Item is ERC721 {
         emit Transfer(_from, _to, _tokenId);
     }
 
+    function supportsInterface(
+        bytes4 // _interfaceID
+    ) external view returns (bool) {
+        return true;
+    }
+
     function transferFrom(
         address _from,
         address _to,
@@ -125,7 +131,7 @@ contract Item is ERC721 {
         return 0;
     }
 
-    function balanceOf(address _owner) public view returns (uint256 count) {
+    function balanceOf(address _owner) public view returns (uint256 balance) {
         return itemOwnershipCount[_owner];
     }
 
