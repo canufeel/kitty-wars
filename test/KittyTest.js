@@ -2,6 +2,7 @@ const KittyOwnership = artifacts.require("KittyOwnership.sol");
 const PlayerRepo = artifacts.require('./PlayerRepo.sol');
 const Item = artifacts.require('./ItemOwnership.sol');
 const Battle = artifacts.require('./Battle.sol');
+const Proxy = artifacts.require('./Proxy.sol');
 
 const BigNumber = web3.utils.BN;
 
@@ -19,6 +20,18 @@ const createPlayerRepo = ({
   kittyContract.address,
   itemContract.address,
   { from: owner }
+);
+
+const deployProxy = ({
+  owner,
+  itemContract,
+  playerRepoContract,
+}) => Proxy.new(
+  itemContract.address,
+  playerRepoContract.address,
+  {
+    from: owner,
+  }
 );
 
 const createKitties = async ({
@@ -69,24 +82,14 @@ const deployItemContract = async ({
 };
 
 const onePlayerFullEquip = async ({
-  itemContract,
-  playerContract,
+  proxyContract,
   playerAddress,
   weaponPower,
   armorPower
 }) => {
-  await itemContract.forge(weaponType, weaponPower, { from: playerAddress });
-  let logs = await itemContract.getPastEvents('ItemForged');
-  let args = logs.find(e => e.event === 'ItemForged').args;
-  const weaponId = args[0];
-
-  await itemContract.forge(armorType, armorPower, { from: playerAddress });
-  logs = await itemContract.getPastEvents('ItemForged');
-  args = logs.find(e => e.event === 'ItemForged').args;
-  const armorId = args[0];
-
-  await playerContract.assignItem(weaponId, { from: playerAddress });
-  await playerContract.assignItem(armorId, { from: playerAddress });
+  await proxyContract.loot(weaponPower, armorPower, {
+    from: playerAddress,
+  });
 };
 
 const deployBattleContract = async ({
@@ -131,16 +134,20 @@ const setupGameWithTwoPlayers = async ({
   await playerRepo.addPlayer(kittyIdTwo, { from: kittyTwoOwner });
   await playerRepo.addPlayer(kittyIdOne, { from: kittyOneOwner });
 
-  await onePlayerFullEquip({
+  const proxyContract = await deployProxy({
+    owner,
+    playerRepoContract: playerRepo,
     itemContract,
-    playerContract: playerRepo,
+  });
+
+  await onePlayerFullEquip({
+    proxyContract,
     playerAddress: kittyOneOwner,
     weaponPower: 7,
     armorPower: 3
   });
   await onePlayerFullEquip({
-    itemContract,
-    playerContract: playerRepo,
+    proxyContract,
     playerAddress: kittyTwoOwner,
     weaponPower: 5,
     armorPower: 4

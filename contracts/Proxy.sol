@@ -13,7 +13,7 @@ contract Proxy {
         address _playerRepo
     ) public {
         require(_playerRepo != address(0));
-        require(__itemFactory != address(0));
+        require(_itemFactory != address(0));
         itemFactory = _itemFactory;
         playerRepo = _playerRepo;
     }
@@ -23,8 +23,8 @@ contract Proxy {
         uint256 armorPower
     ) public {
         IItemBase itemFactoryContract = IItemBase(itemFactory);
-        uint256 weaponId = itemFactoryContract.forge(ItemType.WEAPON, weaponPower);
-        uint256 armorId = itemFactoryContract.forge(ItemType.ARMOR, weaponPower);
+        uint256 weaponId = itemFactoryContract.forge(ItemTypeDataType.ItemType.WEAPON, weaponPower);
+        uint256 armorId = itemFactoryContract.forge(ItemTypeDataType.ItemType.ARMOR, weaponPower);
         itemFactoryContract.approve(playerRepo, weaponId);
         itemFactoryContract.approve(playerRepo, armorId);
         IPlayerRepo playerRepoContract = IPlayerRepo(playerRepo);
