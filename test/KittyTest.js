@@ -126,8 +126,8 @@ contract('Kitty', function ([
       kittyIdTwo,
       { from: kittyTwoOwner }
     );
-    await playerRepo.addPlayer(kittyIdTwo);
-    await playerRepo.addPlayer(kittyIdOne);
+    await playerRepo.addPlayer(kittyIdTwo, { from: kittyTwoOwner });
+    await playerRepo.addPlayer(kittyIdOne, { from: kittyOneOwner });
     debugger;
   });
 });
