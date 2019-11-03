@@ -26,7 +26,7 @@ contract Proxy {
     function join() public {
         uint256 kittyId = KittyBase(kittyToken).createKitty(1, 1, 1, 1, msg.sender);
         KittyBase(kittyToken).approve(msg.sender, kittyId);
-        PlayerRepo(playerRepo).addPlayer(kittyId, msg.sender);
+        IPlayerRepo(playerRepo).addPlayer(kittyId, msg.sender);
     }
 
     function loot(
