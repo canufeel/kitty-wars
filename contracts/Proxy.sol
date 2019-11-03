@@ -34,8 +34,8 @@ contract Proxy {
         uint256 armorPower
     ) public {
         IItemBase itemFactoryContract = IItemBase(itemFactory);
-        uint256 weaponId = itemFactoryContract.forge(ItemType.WEAPON, weaponPower);
-        uint256 armorId = itemFactoryContract.forge(ItemType.ARMOR, weaponPower);
+        uint256 weaponId = itemFactoryContract.forge(ItemTypeDataType.ItemType.WEAPON, weaponPower);
+        uint256 armorId = itemFactoryContract.forge(ItemTypeDataType.ItemType.ARMOR, weaponPower);
         itemFactoryContract.approve(playerRepo, weaponId);
         itemFactoryContract.approve(playerRepo, armorId);
         IPlayerRepo playerRepoContract = IPlayerRepo(playerRepo);
