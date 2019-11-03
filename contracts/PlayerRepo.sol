@@ -1,14 +1,16 @@
 pragma solidity ^0.5.8;
 
 import "./ERC721.sol";
-import "./ItemBase.sol";
+import "./ItemTypeDataType.sol";
+import "./IItemBase.sol";
 
 
-contract PlayerRepo is ItemBase {
+contract PlayerRepo is ItemTypeDataType {
 
     event PlayerAdded(
         uint256 kittyId
     );
+
     event ItemAssigned(
         uint256 kittyId,
         uint256 itemId,
@@ -73,7 +75,6 @@ contract PlayerRepo is ItemBase {
         uint256 itemId
     ) public {
         ERC721 itemToken = ERC721(itemAddress);
-        ERC721 kittyToken = ERC721(kittyToken);
 
         require(
             itemToken.ownerOf(itemId) == msg.sender,
@@ -82,7 +83,9 @@ contract PlayerRepo is ItemBase {
 
         uint256 kittyId = players[msg.sender].kittyId;
 
-        ItemType itemType = allItems[itemId].itemType;
+        (
+            ItemType itemType,
+        ) = IItemBase(itemAddress).getItem(itemId);
         if (itemType == ItemType.WEAPON) {
             players[msg.sender].weaponId = itemId;
         } else {

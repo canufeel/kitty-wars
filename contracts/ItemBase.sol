@@ -1,16 +1,17 @@
 pragma solidity ^0.5.8;
 
+import "./ItemTypeDataType.sol";
 
-contract ItemBase {
+
+contract ItemBase is ItemTypeDataType {
     event ItemForged(
         uint256 itemId,
         ItemType itemType,
         uint256 itemPower
     );
+
     event Transfer(address from, address to, uint256 tokenId);
     event Approval(address owner, address approved, uint256 tokenId);
-
-    enum ItemType { WEAPON, ARMOR }
 
     struct PlayerItemStruct {
         ItemType itemType;
@@ -67,5 +68,13 @@ contract ItemBase {
         }
         // Emit the transfer event.
         emit Transfer(_from, _to, _tokenId);
+    }
+
+    function getItem(uint256 itemId) public view returns (
+        ItemType itemType,
+        uint256 itemPower
+    ) {
+        PlayerItemStruct memory playerItem = allItems[itemId];
+        return (playerItem.itemType, playerItem.power);
     }
 }
