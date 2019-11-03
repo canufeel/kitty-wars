@@ -205,7 +205,7 @@ contract('Kitty', function ([
     assert.ok(true);
   });
 
-  it('can submit battle values up to determinWinner', async function () {
+  it('can submit battle values up to commitBattleParams', async function () {
     const {
       battle,
       playerRepo,
@@ -258,6 +258,62 @@ contract('Kitty', function ([
       kittyOneOwner,
       kittyTwoOwner,
     });
+  });
 
+  it('can submit battle values up to submitBattleResolution', async function () {
+    const {
+      battle,
+      playerRepo,
+      itemContract,
+      kittyIdOne,
+      kittyIdTwo,
+    } = await setupGameWithTwoPlayers({
+      owner,
+      kittyOneOwner,
+      kittyTwoOwner,
+    });
+
+    await battle.startBattle(0, {
+      from: kittyOneOwner,
+    });
+
+    await battle.startBattle(1, {
+      from: kittyTwoOwner,
+    });
+
+    const {
+      numsArr: numsOneArr,
+      hashesArr: hashesOneArr,
+    } = generateNumsAndHashesArr();
+    await battle.commitBattleParams(
+      hashesOneArr,
+      1,
+      { from: kittyOneOwner }
+    );
+    const {
+      numsArr: numsTwoArr,
+      hashesArr: hashesTwoArr,
+    } = generateNumsAndHashesArr();
+    await battle.commitBattleParams(
+      hashesTwoArr,
+      1,
+      { from: kittyTwoOwner }
+    );
+
+    await battle.submitBattleResolution(
+      numsOneArr,
+      1,
+      {
+        from: kittyOneOwner,
+      }
+    );
+    await battle.submitBattleResolution(
+      numsTwoArr,
+      1,
+      {
+        from: kittyTwoOwner,
+      }
+    );
+    assert.ok(true);
   });
 });
