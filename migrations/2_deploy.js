@@ -3,5 +3,4 @@ const PlayerRepo = artifacts.require('./PlayerRepo.sol');
 
 module.exports = async function(deployer) {
   await deployer.deploy(KittyOwnership);
-  await deployer.deploy(PlayerRepo);
 };
