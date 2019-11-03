@@ -163,5 +163,13 @@ contract('Kitty', function ([
       kittyTwoOwner,
     });
 
+    await battle.startBattle(0, {
+      from: kittyOneOwner,
+    });
+
+    await battle.startBattle(1, {
+      from: kittyTwoOwner,
+    });
+    assert.ok(false);
   });
 });
