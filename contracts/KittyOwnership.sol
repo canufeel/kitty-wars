@@ -95,7 +95,6 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 _tokenId
     )
         external
-        whenNotPaused
     {
         // Safety check to prevent against an unexpected 0x0 default.
         require(_to != address(0));
