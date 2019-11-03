@@ -138,6 +138,7 @@ const setupGameWithTwoPlayers = async ({
     owner,
     playerRepoContract: playerRepo,
     itemContract,
+    kittyContract
   });
 
   await onePlayerFullEquip({
