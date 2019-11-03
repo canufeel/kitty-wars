@@ -275,37 +275,45 @@ contract Battle {
         uint256[] memory rounds = new uint256[](10);
         uint256[] memory modifiers = new uint256[](4);
 
-        // TODO: import Item contract above
         (, modifiers[0]) = ItemOwnership(itemOwnership).getItem(weaponId1);
         (, modifiers[1]) = ItemOwnership(itemOwnership).getItem(armorId1);
         (, modifiers[2]) = ItemOwnership(itemOwnership).getItem(weaponId2);
         (, modifiers[3]) = ItemOwnership(itemOwnership).getItem(armorId2);
 
         uint256 round;
-        uint256 totalDamageOne = 0;
-        uint256 totalDamageTwo = 0;
+        // 0 - playerOneDamage, 1 - playerTwoDamage
+        uint256[] memory totalDamages = new uint256[](2);
         uint256 currentDamage = 0;
 
-        for (uint256 i = 0; i < resolutionValues.length; i++) {
-            round = existingRolls[i] + resolutionValues[i];
-            if (round > 100) round == 100;
+        for (uint256 i = 0; i < 10; i++) {
+            round = (existingRolls[i] % 100 + resolutionValues[i] % 100) % 100;
 
             if (i % 2 != 0) {
                 currentDamage = round * modifiers[0] - round * modifiers[1];
                 currentDamage = currentDamage <= 0 ? 0 : currentDamage;
-                totalDamageOne = totalDamageOne + currentDamage;
+                totalDamages[0] = totalDamages[0] + currentDamage;
             } else {
                 currentDamage = round * modifiers[2] - round * modifiers[3];
                 currentDamage = currentDamage <= 0 ? 0 : currentDamage;
-                totalDamageTwo = totalDamageTwo + currentDamage;
+                totalDamages[1] = totalDamages[1] + currentDamage;
+            }
+
+            if (i == 9) {
+                currentDamage = round * modifiers[0];
+                totalDamages[0] = totalDamages[0] + currentDamage;
+            } else if (i == 10) {
+                currentDamage = round * modifiers[2];
+                totalDamages[1] = totalDamages[1] + currentDamage;
             }
         }
 
         address winner;
-        if (totalDamageOne > totalDamageTwo) {
+        if (totalDamages[0] > totalDamages[1]) {
             winner = battles[battleId].playerOne;
-        } else if (totalDamageOne < totalDamageTwo) {
+        } else if (totalDamages[0] < totalDamages[1]) {
             winner = battles[battleId].playerTwo;
+        } else {
+            revert("DRAW! Play again!");
         }
 
         return winner;

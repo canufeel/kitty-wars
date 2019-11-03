@@ -3,8 +3,11 @@ const PlayerRepo = artifacts.require('./PlayerRepo.sol');
 const Item = artifacts.require('./ItemOwnership.sol');
 const Battle = artifacts.require('./Battle.sol');
 
+const BigNumber = web3.utils.BN;
+
 const weaponType = 0;
 const armorType = 1;
+const hundred = new BigNumber(100);
 
 const createKittyContract = () => KittyOwnership.new();
 
@@ -262,7 +265,7 @@ contract('Kitty', function ([
     });
   });
 
-  it('can submit battle values up to submitBattleResolution', async function () {
+  it('can submit battle values up and determine winner correctly', async function () {
     const {
       battle,
       playerRepo,
@@ -316,6 +319,62 @@ contract('Kitty', function ([
         from: kittyTwoOwner,
       }
     );
-    assert.ok(true);
+
+    const logs = await battle.getPastEvents('BattleWon');
+    const {
+      winner: winnerFromContract
+    } = logs.find(e => e.event === 'BattleWon').args;
+
+    const modifiers = [];
+    for (let i = 0; i < 4; i++) {
+      const {
+        itemPower: power
+      } = await itemContract.getItem(i+1);
+      modifiers[i] = power;
+    }
+
+    const rounds = numsOneArr.map(
+        (cur, idx) => {
+          return new BigNumber(cur)
+              .mod(hundred)
+              .add(
+                  new BigNumber(numsTwoArr[idx])
+                      .mod(hundred)
+              )
+              .mod(hundred)
+        }
+    );
+
+    let curDamage;
+    let totalDamageOne = new BigNumber(0);
+    let totalDamageTwo = new BigNumber(0);
+    rounds.map(
+        (cur, idx) => {
+          if (idx % 2 !== 0) {
+            curDamage = cur.mul(modifiers[0]).sub(
+                cur.mul(modifiers[1])
+            );
+            curDamage = curDamage.lt(new BigNumber(0)) ? new BigNumber(0) : curDamage;
+            totalDamageOne = totalDamageOne.add(curDamage);
+          } else {
+            curDamage = cur.mul(modifiers[2]).sub(
+                cur.mul(modifiers[3])
+            );
+            curDamage = curDamage.lt(new BigNumber(0)) ? new BigNumber(0) : curDamage;
+            totalDamageTwo = totalDamageTwo.add(curDamage);
+          }
+        }
+    );
+
+    let testWinner;
+    if (totalDamageOne.gt(totalDamageTwo)) {
+      testWinner = kittyOneOwner;
+    } else if (totalDamageOne.lt(totalDamageTwo)) {
+      testWinner = kittyTwoOwner;
+    } else {
+      throw Error('Draw!');
+    }
+
+    assert.equal(winnerFromContract, testWinner);
   });
 });
