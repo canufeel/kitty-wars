@@ -157,6 +157,27 @@ const setupGameWithTwoPlayers = async ({
   };
 };
 
+const generateRandomNum = () => web3.utils.randomHex(32);
+const getNumSha = (hashNum) => web3.utils.sha3(hashNum);
+
+const generateNumsAndHashesArr = () => {
+  const arr = new Array(10).fill(0);
+  const valuesArr = arr.map(() => {
+    const num = generateRandomNum();
+    const hash = getNumSha(num);
+    return {
+      num,
+      hash,
+    };
+  });
+  const numsArr = valuesArr.map(({ num }) => num);
+  const hashesArr = valuesArr.map(({ hash }) => hash);
+  return {
+    numsArr,
+    hashesArr,
+  };
+};
+
 contract('Kitty', function ([
   owner,
   kittyOneOwner,
@@ -186,7 +207,7 @@ contract('Kitty', function ([
     assert.ok(true);
   });
 
-  it('can submit battle values up to determinWinner', async function () {
+  it('can submit battle values up to commitBattleParams', async function () {
     const {
       battle,
       playerRepo,
@@ -206,7 +227,25 @@ contract('Kitty', function ([
     await battle.startBattle(1, {
       from: kittyTwoOwner,
     });
-    assert.ok(true);
+
+    const {
+      numsArr: numsOneArr,
+      hashesArr: hashesOneArr,
+    } = generateNumsAndHashesArr();
+    await battle.commitBattleParams(
+      hashesOneArr,
+      1,
+      { from: kittyOneOwner }
+    );
+    const {
+      numsArr: numsTwoArr,
+      hashesArr: hashesTwoArr,
+    } = generateNumsAndHashesArr();
+    await battle.commitBattleParams(
+      hashesTwoArr,
+      1,
+      { from: kittyTwoOwner }
+    );
   });
 
   it('can assign both weapons for both players', async function () {
@@ -221,6 +260,62 @@ contract('Kitty', function ([
       kittyOneOwner,
       kittyTwoOwner,
     });
+  });
 
+  it('can submit battle values up to submitBattleResolution', async function () {
+    const {
+      battle,
+      playerRepo,
+      itemContract,
+      kittyIdOne,
+      kittyIdTwo,
+    } = await setupGameWithTwoPlayers({
+      owner,
+      kittyOneOwner,
+      kittyTwoOwner,
+    });
+
+    await battle.startBattle(0, {
+      from: kittyOneOwner,
+    });
+
+    await battle.startBattle(1, {
+      from: kittyTwoOwner,
+    });
+
+    const {
+      numsArr: numsOneArr,
+      hashesArr: hashesOneArr,
+    } = generateNumsAndHashesArr();
+    await battle.commitBattleParams(
+      hashesOneArr,
+      1,
+      { from: kittyOneOwner }
+    );
+    const {
+      numsArr: numsTwoArr,
+      hashesArr: hashesTwoArr,
+    } = generateNumsAndHashesArr();
+    await battle.commitBattleParams(
+      hashesTwoArr,
+      1,
+      { from: kittyTwoOwner }
+    );
+
+    await battle.submitBattleResolution(
+      numsOneArr,
+      1,
+      {
+        from: kittyOneOwner,
+      }
+    );
+    await battle.submitBattleResolution(
+      numsTwoArr,
+      1,
+      {
+        from: kittyTwoOwner,
+      }
+    );
+    assert.ok(true);
   });
 });
