@@ -7,6 +7,8 @@ contract Battle {
     bytes32 private constant ZERO_BYTES32 = bytes32(0);
     uint256 private constant ZERO_UINT256 = uint256(0);
 
+    uint256 private constant PLAYER_HITPOINTS = uint256(100);
+
     event BattleWon (
         address winner,
         uint256 battleId
@@ -135,7 +137,7 @@ contract Battle {
         uint256 battleId
     ) public {
         require(battles[battleId].started == true, "Battle has not started or does not exist");
-        if (!battleParamsArr[battleId].created) {
+        if (battleParamsArr.length == battleId) {
             bytes32[10] memory emptyBytes = [
                 ZERO_BYTES32,
                 ZERO_BYTES32,
@@ -176,8 +178,8 @@ contract Battle {
                 revert("Invalid player");
             }
 
-            battleParamsArr[battleId] = battleParams;
-        } else {
+            battleParamsArr.push(battleParams);
+        } else if (battleParamsArr.length > battleId) {
             if (msg.sender == battles[battleId].playerOne) {
                 battleParamsArr[battleId].playerOneHashes = hashes;
             } else if (msg.sender == battles[battleId].playerTwo) {
@@ -186,6 +188,8 @@ contract Battle {
                 revert("Invalid player");
             }
             battles[battleId].canResolve = true;
+        } else {
+            revert("Invalid battleId");
         }
     }
 
