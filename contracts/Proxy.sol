@@ -2,7 +2,7 @@ pragma solidity ^0.5.8;
 
 import "./IItemBase.sol";
 import "./KittyBase.sol";
-import "./PlayerRepo.sol";
+import "./IPlayerRepo.sol";
 
 contract Proxy {
 
@@ -33,7 +33,19 @@ contract Proxy {
         uint256 weaponPower,
         uint256 armorPower
     ) public {
-        IItemBase(itemFactory).forge(ItemType.WEAPON, weaponPower);
-        IItemBase(itemFactory).forge(ItemType.ARMOR, weaponPower);
+        IItemBase itemFactoryContract = IItemBase(itemFactory);
+        uint256 weaponId = itemFactoryContract.forge(ItemType.WEAPON, weaponPower);
+        uint256 armorId = itemFactoryContract.forge(ItemType.ARMOR, weaponPower);
+        itemFactoryContract.approve(playerRepo, weaponId);
+        itemFactoryContract.approve(playerRepo, armorId);
+        IPlayerRepo playerRepoContract = IPlayerRepo(playerRepo);
+        playerRepoContract.assignItem(
+            weaponId,
+            msg.sender
+        );
+        playerRepoContract.assignItem(
+            armorId,
+            msg.sender
+        );
     }
 }

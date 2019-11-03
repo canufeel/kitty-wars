@@ -8,4 +8,9 @@ contract IPlayerRepo {
         uint256 kittyId,
         bool enabled
     );
+
+    function assignItem(
+        uint256 itemId,
+        address toPlayer
+    ) public;
 }
