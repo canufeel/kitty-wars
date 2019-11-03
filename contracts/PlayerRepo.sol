@@ -25,20 +25,16 @@ contract PlayerRepo is ItemBase {
     mapping (address => Player) players;
 
     address public kittyToken;
-    address public weaponAddress;
-    address public armorAddress;
+    address public itemAddress;
 
     constructor (
         address _kittyToken,
-        address _weaponAddress,
-        address _armorAddress
+        address _itemAddress
     ) public {
         require(_kittyToken != address(0));
-        require(_weaponAddress != address(0));
-        require(_armorAddress != address(0));
+        require(_itemAddress != address(0));
         kittyToken = _kittyToken;
-        weaponAddress = _weaponAddress;
-        armorAddress = _armorAddress;
+        itemAddress = _itemAddress;
     }
 
     function addPlayer(
@@ -75,10 +71,8 @@ contract PlayerRepo is ItemBase {
 
     function assignItem(
         uint256 itemId,
-        address itemTokenAddress,
-        address kittyTokenAddress
     ) public {
-        ERC721 itemToken = ERC712(itemTokenAddress);
+        ERC721 itemToken = ERC721(itemTokenAddress);
         ERC721 kittyToken = ERC721(kittyTokenAddress);
 
         require(
