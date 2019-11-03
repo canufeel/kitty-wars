@@ -115,8 +115,7 @@ const setupGameWithTwoPlayers = async ({
   return {
     battle,
     playerRepo,
-    weaponContract,
-    armorContract,
+    itemContract,
     kittyIdOne,
     kittyIdTwo,
   };
@@ -155,8 +154,7 @@ contract('Kitty', function ([
     const {
       battle,
       playerRepo,
-      weaponContract,
-      armorContract,
+      itemContract,
       kittyIdOne,
       kittyIdTwo,
     } = await setupGameWithTwoPlayers({

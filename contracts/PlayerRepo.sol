@@ -70,10 +70,10 @@ contract PlayerRepo is ItemBase {
     }
 
     function assignItem(
-        uint256 itemId,
+        uint256 itemId
     ) public {
-        ERC721 itemToken = ERC721(itemTokenAddress);
-        ERC721 kittyToken = ERC721(kittyTokenAddress);
+        ERC721 itemToken = ERC721(itemAddress);
+        ERC721 kittyToken = ERC721(kittyToken);
 
         require(
             itemToken.ownerOf(itemId) == msg.sender,
