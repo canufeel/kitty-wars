@@ -16,6 +16,10 @@ contract Battle {
         uint256 battleId
     );
 
+    event DamageUpdate(
+        uint256 value
+    );
+
     event BattleCreated (
         address player,
         uint256 battleId
@@ -329,7 +333,7 @@ contract Battle {
             uint256 weaponId2,
             uint256 armorId2,
             ,
-        ) = IPlayerRepo(playerRepo).getPlayer(battles[battleId].playerOne);
+        ) = IPlayerRepo(playerRepo).getPlayer(battles[battleId].playerTwo);
         uint256[4] memory modifiers = [ZERO_UINT256, ZERO_UINT256, ZERO_UINT256, ZERO_UINT256];
 
         (, modifiers[0]) = ItemOwnership(itemOwnership).getItem(weaponId1);

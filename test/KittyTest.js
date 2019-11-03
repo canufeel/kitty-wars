@@ -343,10 +343,10 @@ contract('Kitty', function ([
 
     const rounds = numsOneArr.map(
         (cur, idx) => {
-          return new BigNumber(cur)
+          return new BigNumber(cur.slice(2), 16)
               .mod(hundred)
               .add(
-                  new BigNumber(numsTwoArr[idx])
+                  new BigNumber(numsTwoArr[idx].slice(2), 16)
                       .mod(hundred)
               )
               .mod(hundred)
@@ -382,8 +382,6 @@ contract('Kitty', function ([
     } else {
       throw Error('Draw!');
     }
-    console.log(totalDamageOne.toString());
-    console.log(totalDamageTwo.toString());
 
     assert.equal(winnerFromContract, testWinner);
   });
