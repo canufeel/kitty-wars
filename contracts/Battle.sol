@@ -3,6 +3,7 @@ pragma solidity ^0.5.8;
 import "./IPlayerRepo.sol";
 import "./ItemOwnership.sol";
 
+
 contract Battle {
     bytes32 private constant ZERO_BYTES32 = bytes32(0);
     uint256 private constant ZERO_UINT256 = uint256(0);
@@ -147,6 +148,7 @@ contract Battle {
     function commitBattleParams(
         bytes32[10] memory hashes,
         uint256 battleId
+    // solhint-disable-next-line max-len
     ) public {
         require(battles[battleId].started == true, "Battle has not started or does not exist");
         if (battleParamsArr.length == battleId) {

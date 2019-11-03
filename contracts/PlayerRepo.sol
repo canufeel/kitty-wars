@@ -3,19 +3,10 @@ pragma solidity ^0.5.8;
 import "./ERC721.sol";
 import "./ItemTypeDataType.sol";
 import "./IItemBase.sol";
+import "./IPlayerRepo.sol";
 
 
-contract PlayerRepo is ItemTypeDataType {
-
-    event PlayerAdded(
-        uint256 kittyId
-    );
-
-    event ItemAssigned(
-        uint256 kittyId,
-        uint256 itemId,
-        ItemType itemType
-    );
+contract PlayerRepo is IPlayerRepo {
 
     struct Player {
         uint256 weaponId;
@@ -40,7 +31,8 @@ contract PlayerRepo is ItemTypeDataType {
     }
 
     function addPlayer(
-        uint256 kittyId
+        uint256 kittyId,
+        address toPlayer
     ) public {
         ERC721(kittyToken)
             .transferFrom(
@@ -48,14 +40,15 @@ contract PlayerRepo is ItemTypeDataType {
                 address(this),
                 kittyId
             );
-        players[msg.sender] = Player({
+        players[toPlayer] = Player({
             weaponId: uint256(0),
             armorId: uint256(0),
             kittyId: kittyId,
             enabled: true
         });
         emit PlayerAdded(
-            kittyId
+            kittyId,
+            toPlayer
         );
     }
 

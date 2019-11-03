@@ -1,7 +1,20 @@
 pragma solidity ^0.5.8;
 
+import "./ItemTypeDataType.sol";
 
-contract IPlayerRepo {
+
+contract IPlayerRepo is ItemTypeDataType {
+    event PlayerAdded(
+        uint256 kittyId,
+        address playerAddress
+    );
+
+    event ItemAssigned(
+        uint256 kittyId,
+        uint256 itemId,
+        ItemType itemType
+    );
+
     function getPlayer(address playerAddress) public view returns (
         uint256 weaponId,
         uint256 armorId,
@@ -15,6 +28,7 @@ contract IPlayerRepo {
     ) public;
 
     function addPlayer(
-        uint256 kittyId
+        uint256 kittyId,
+        address toPlayer
     ) public;
 }

@@ -2,7 +2,7 @@ pragma solidity ^0.5.8;
 
 
 import "./KittyBase.sol";
-import "./ERC721.sol";
+import "../ERC721.sol";
 import "./ERC721Metadata.sol";
 /// @title The facet of the CryptoKitties core contract that manages ownership, ERC-721 (draft) compliant.
 /// @author Axiom Zen (https://www.axiomzen.co)
@@ -32,6 +32,10 @@ contract KittyOwnership is KittyBase, ERC721 {
         bytes4(keccak256('transferFrom(address,address,uint256)')) ^
         bytes4(keccak256('tokensOfOwner(address)')) ^
         bytes4(keccak256('tokenMetadata(uint256,string)'));
+
+    constructor() public {
+        _createKitty(0, 0, 0, uint256(-1), address(0));
+    }
 
     /// @notice Introspection interface as per ERC-165 (https://github.com/ethereum/EIPs/issues/165).
     ///  Returns true for any standardized interfaces implemented by this contract. We implement

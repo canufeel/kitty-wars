@@ -104,15 +104,6 @@ const setupGameWithTwoPlayers = async ({
   kittyTwoOwner,
 }) => {
   const kittyContract = await createKittyContract();
-  const {
-    kittyIdOne,
-    kittyIdTwo
-  } = await createKitties({
-    owner,
-    kittyContract,
-    kittyOneOwner,
-    kittyTwoOwner,
-  });
   const itemContract = await deployItemContract({
     owner,
   });
@@ -121,25 +112,27 @@ const setupGameWithTwoPlayers = async ({
     itemContract,
     owner,
   });
-  await kittyContract.approve(
-    playerRepo.address,
-    kittyIdOne,
-    { from: kittyOneOwner }
-  );
-  await kittyContract.approve(
-    playerRepo.address,
-    kittyIdTwo,
-    { from: kittyTwoOwner }
-  );
-  await playerRepo.addPlayer(kittyIdTwo, { from: kittyTwoOwner });
-  await playerRepo.addPlayer(kittyIdOne, { from: kittyOneOwner });
-
   const proxyContract = await deployProxy({
     owner,
     playerRepoContract: playerRepo,
     itemContract,
     kittyContract,
   });
+
+  await proxyContract.join({ from: kittyOneOwner });
+  const logsOne = await playerRepo.getPastEvents('PlayerAdded');
+  await proxyContract.join({ from: kittyTwoOwner });
+  const logsTwo = await playerRepo.getPastEvents('PlayerAdded');
+
+
+  const argsOneArr = logsOne
+    .filter(e => e.event === 'PlayerAdded')
+    .map(({ args }) => args);
+  const kittyIdOne = argsOneArr.find(({ playerAddress }) => playerAddress === kittyOneOwner).kittyId;
+  const argsTwoArr = logsTwo
+    .filter(e => e.event === 'PlayerAdded')
+    .map(({ args }) => args);
+  const kittyIdTwo = argsTwoArr.find(({ playerAddress }) => playerAddress === kittyTwoOwner).kittyId;
 
   await onePlayerFullEquip({
     proxyContract,
@@ -406,6 +399,6 @@ contract('Kitty', function ([
     const logs = await playerRepoContract.getPastEvents('PlayerAdded');
     const { kittyId } = logs.find(e => e.event === 'PlayerAdded').args;
 
-    assert(!!kittyId);
+    assert.ok(!!kittyId);
   });
 });
