@@ -27,7 +27,7 @@ contract ItemBase {
     mapping (uint256 => address) itemToApproved;
 
     constructor() public {
-        PlayerItemStruct memory zeroItem = new Item(Type.WEAPON, 0);
+        PlayerItemStruct memory zeroItem = PlayerItemStruct(Type.WEAPON, 0);
         allItems.push(zeroItem);
     }
 
@@ -38,7 +38,7 @@ contract ItemBase {
             "Wrong item itemType. Only Weapon (0) or Armor (1) available"
         );
 
-        PlayerItemStruct memory newItem = new Item(itemType, power);
+        PlayerItemStruct memory newItem = PlayerItemStruct(itemType, power);
         allItems.push(newItem);
         itemId = allItems.length - 1;
 

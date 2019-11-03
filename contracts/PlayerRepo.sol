@@ -45,8 +45,8 @@ contract PlayerRepo {
                 kittyId
             );
         players[msg.sender] = Player({
-            weapon: uint256(0),
-            armor: uint256(0),
+            weaponId: uint256(0),
+            armorId: uint256(0),
             kittyId: kittyId,
             enabled: true
         });
@@ -61,8 +61,8 @@ contract PlayerRepo {
         uint256 kittyId,
         bool enabled
     ) {
-        weaponId = players[playerAddress].weapon;
-        armorId = players[playerAddress].armor;
+        weaponId = players[playerAddress].weaponId;
+        armorId = players[playerAddress].armorId;
         kittyId = players[playerAddress].kittyId;
         enabled = players[playerAddress].enabled;
     }
