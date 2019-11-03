@@ -88,8 +88,9 @@ const onePlayerFullEquip = async ({
 
 const deployBattleContract = async ({
   owner,
-  playerRepo
-}) => Battle.new(playerRepo.address, { from: owner });
+  playerRepo,
+  itemContract
+}) => Battle.new(playerRepo.address, itemContract.address, { from: owner });
 
 const setupGameWithTwoPlayers = async ({
   owner,
@@ -145,6 +146,7 @@ const setupGameWithTwoPlayers = async ({
   const battle = await deployBattleContract({
     playerRepo,
     owner,
+    itemContract
   });
   return {
     battle,

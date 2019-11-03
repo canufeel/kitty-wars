@@ -1,7 +1,7 @@
 pragma solidity ^0.5.8;
 
 import "./IPlayerRepo.sol";
-
+import "./ItemOwnership.sol";
 
 contract Battle {
     bytes32 private constant ZERO_BYTES32 = bytes32(0);
@@ -49,10 +49,16 @@ contract Battle {
     mapping (address => bool) isBattling;
 
     address public playerRepo;
+    address public itemOwnership;
 
-    constructor (address _playerRepo) public {
+    constructor (
+        address _playerRepo,
+        address _itemOwnership
+    ) public {
         require(_playerRepo != address(0));
+        require(_itemOwnership != address(0));
         playerRepo = _playerRepo;
+        itemOwnership = _itemOwnership;
         battles.push(BattleStruct({
             playerOne: address(0),
             playerTwo: address(0),
@@ -246,6 +252,62 @@ contract Battle {
         uint256[10] memory resolutionValues,
         uint256 battleId
     ) internal view returns (address) {
-        return battles[battleId].playerOne;
+        uint256[10] memory existingRolls;
+        if (msg.sender == battles[battleId].playerOne) {
+            existingRolls = battleParamsArr[battleId].playerTwoRolls;
+        } else if (msg.sender == battles[battleId].playerTwo) {
+            existingRolls = battleParamsArr[battleId].playerOneRolls;
+        } else {
+            revert("Invalid player");
+        }
+
+        (
+            uint256 weaponId1,
+            uint256 armorId1,
+            ,
+        ) = IPlayerRepo(playerRepo).getPlayer(battles[battleId].playerOne);
+        (
+            uint256 weaponId2,
+            uint256 armorId2,
+            ,
+        ) = IPlayerRepo(playerRepo).getPlayer(battles[battleId].playerOne);
+
+        uint256[] memory rounds = new uint256[](10);
+        uint256[] memory modifiers = new uint256[](4);
+
+        // TODO: import Item contract above
+        (, modifiers[0]) = ItemOwnership(itemOwnership).getItem(weaponId1);
+        (, modifiers[1]) = ItemOwnership(itemOwnership).getItem(armorId1);
+        (, modifiers[2]) = ItemOwnership(itemOwnership).getItem(weaponId2);
+        (, modifiers[3]) = ItemOwnership(itemOwnership).getItem(armorId2);
+
+        uint256 round;
+        uint256 totalDamageOne = 0;
+        uint256 totalDamageTwo = 0;
+        uint256 currentDamage = 0;
+
+        for (uint256 i = 0; i < resolutionValues.length; i++) {
+            round = existingRolls[i] + resolutionValues[i];
+            if (round > 100) round == 100;
+
+            if (i % 2 != 0) {
+                currentDamage = round * modifiers[0] - round * modifiers[1];
+                currentDamage = currentDamage <= 0 ? 0 : currentDamage;
+                totalDamageOne = totalDamageOne + currentDamage;
+            } else {
+                currentDamage = round * modifiers[2] - round * modifiers[3];
+                currentDamage = currentDamage <= 0 ? 0 : currentDamage;
+                totalDamageTwo = totalDamageTwo + currentDamage;
+            }
+        }
+
+        address winner;
+        if (totalDamageOne > totalDamageTwo) {
+            winner = battles[battleId].playerOne;
+        } else if (totalDamageOne < totalDamageTwo) {
+            winner = battles[battleId].playerTwo;
+        }
+
+        return winner;
     }
 }
