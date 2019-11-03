@@ -4,16 +4,16 @@ pragma solidity ^0.5.8;
 contract ItemBase {
     event ItemCreated(
         uint256 itemId,
-        Type itemType,
+        ItemType itemType,
         uint256 itemPower
     );
     event Transfer(address from, address to, uint256 tokenId);
     event Approval(address owner, address approved, uint256 tokenId);
 
-    enum Type { WEAPON, ARMOR }
+    enum ItemType { WEAPON, ARMOR }
 
     struct PlayerItemStruct {
-        Type itemType;
+        ItemType itemType;
         uint256 power;
     }
 
@@ -27,14 +27,14 @@ contract ItemBase {
     mapping (uint256 => address) itemToApproved;
 
     constructor() public {
-        PlayerItemStruct memory zeroItem = PlayerItemStruct(Type.WEAPON, 0);
+        PlayerItemStruct memory zeroItem = PlayerItemStruct(ItemType.WEAPON, 0);
         allItems.push(zeroItem);
     }
 
-    function forge(Type itemType, uint256 power) public returns (uint256 itemId) {
+    function forge(ItemType itemType, uint256 power) public returns (uint256 itemId) {
         require(power <= 10, "Power has to be <= 10.");
         require(
-            itemType == Type.WEAPON || itemType == Type.ARMOR,
+            itemType == ItemType.WEAPON || itemType == ItemType.ARMOR,
             "Wrong item itemType. Only Weapon (0) or Armor (1) available"
         );
 

@@ -1,12 +1,18 @@
 pragma solidity ^0.5.8;
 
 import "./ERC721.sol";
+import "./ItemBase.sol";
 
 
-contract PlayerRepo {
+contract PlayerRepo is ItemBase {
 
     event PlayerAdded(
         uint256 kittyId
+    );
+    event ItemAssigned(
+        uint256 kittyId,
+        uint256 itemId,
+        ItemType itemType
     );
 
     struct Player {
@@ -19,20 +25,16 @@ contract PlayerRepo {
     mapping (address => Player) players;
 
     address public kittyToken;
-    address public weaponAddress;
-    address public armorAddress;
+    address public itemAddress;
 
     constructor (
         address _kittyToken,
-        address _weaponAddress,
-        address _armorAddress
+        address _itemAddress
     ) public {
         require(_kittyToken != address(0));
-        require(_weaponAddress != address(0));
-        require(_armorAddress != address(0));
+        require(_itemAddress != address(0));
         kittyToken = _kittyToken;
-        weaponAddress = _weaponAddress;
-        armorAddress = _armorAddress;
+        itemAddress = _itemAddress;
     }
 
     function addPlayer(
@@ -67,21 +69,34 @@ contract PlayerRepo {
         enabled = players[playerAddress].enabled;
     }
 
-    function assignWeapon(
+    function assignItem(
         uint256 itemId,
-        address itemTokenAddress,
-        uint256 kittyId,
-        address kittyTokenAddress
     ) public {
+        ERC721 itemToken = ERC721(itemTokenAddress);
+        ERC721 kittyToken = ERC721(kittyTokenAddress);
+
         require(
-            ERC721(itemTokenAddress).ownerOf(itemId) == msg.sender,
+            itemToken.ownerOf(itemId) == msg.sender,
             "You have to own the Item."
         );
+
+        uint256 kittyId = players[msg.sender].kittyId;
         require(
-            ERC721(kittyTokenAddress).ownerOf(kittyId) == msg.sender,
+            kittyToken.ownerOf(kittyId) == msg.sender,
             "You have to own the Kitty."
         );
 
+        ItemType itemType = allItems[itemId].itemType;
+        if (itemType == ItemType.WEAPON) {
+            players[msg.sender].weaponId = itemId;
+        } else {
+            players[msg.sender].armorId = itemId;
+        }
 
+        emit ItemAssigned(
+            kittyId,
+            itemId,
+            itemType
+        );
     }
 }
