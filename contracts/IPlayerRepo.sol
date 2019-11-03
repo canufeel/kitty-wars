@@ -13,4 +13,8 @@ contract IPlayerRepo {
         uint256 itemId,
         address toPlayer
     ) public;
+
+    function addPlayer(
+        uint256 kittyId
+    ) public;
 }

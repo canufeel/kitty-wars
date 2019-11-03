@@ -1,7 +1,7 @@
 pragma solidity ^0.5.8;
 
 import "./IItemBase.sol";
-import "./KittyBase.sol";
+import "./KittyOwnership.sol";
 import "./IPlayerRepo.sol";
 
 contract Proxy {
@@ -24,9 +24,9 @@ contract Proxy {
     }
 
     function join() public {
-        uint256 kittyId = KittyBase(kittyToken).createKitty(1, 1, 1, 1, msg.sender);
-        KittyBase(kittyToken).approve(msg.sender, kittyId);
-        IPlayerRepo(playerRepo).addPlayer(kittyId, msg.sender);
+        uint256 kittyId = KittyOwnership(kittyToken).createKitty(1, 1, 1, 1, address(this));
+        KittyOwnership(kittyToken).approve(playerRepo, kittyId);
+        IPlayerRepo(playerRepo).addPlayer(kittyId);
     }
 
     function loot(

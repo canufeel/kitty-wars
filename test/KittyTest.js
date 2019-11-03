@@ -26,9 +26,11 @@ const deployProxy = ({
   owner,
   itemContract,
   playerRepoContract,
+  kittyContract
 }) => Proxy.new(
   itemContract.address,
   playerRepoContract.address,
+  kittyContract.address,
   {
     from: owner,
   }
@@ -74,9 +76,7 @@ const createKitties = async ({
   };
 };
 
-const deployItemContract = async ({
-  owner,
-}) => {
+const deployItemContract = async () => {
   const itemContract = await Item.new();
   return itemContract;
 };
@@ -383,5 +383,28 @@ contract('Kitty', function ([
     }
 
     assert.equal(winnerFromContract, testWinner);
+  });
+
+  it('player can join', async function () {
+    const kittyContract = await createKittyContract();
+    const itemContract = await deployItemContract();
+    const playerRepoContract = await createPlayerRepo({
+      kittyContract,
+      owner,
+      itemContract
+    });
+    const proxyContract = await deployProxy({
+      owner,
+      itemContract,
+      playerRepoContract,
+      kittyContract
+    });
+
+    await proxyContract.join();
+
+    const logs = await playerRepoContract.getPastEvents('PlayerAdded');
+    const { kittyId } = logs.find(e => e.event === 'PlayerAdded').args;
+
+    assert(!!kittyId);
   });
 });
