@@ -40,15 +40,16 @@ contract PlayerRepo is ItemTypeDataType {
     }
 
     function addPlayer(
-        uint256 kittyId
+        uint256 kittyId,
+        address owner
     ) public {
         ERC721(kittyToken)
             .transferFrom(
-                msg.sender,
+                owner,
                 address(this),
                 kittyId
             );
-        players[msg.sender] = Player({
+        players[owner] = Player({
             weaponId: uint256(0),
             armorId: uint256(0),
             kittyId: kittyId,
