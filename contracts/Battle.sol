@@ -2,8 +2,10 @@ pragma solidity ^0.5.8;
 
 import "./IPlayerRepo.sol";
 
+
 contract Battle {
     bytes32 private constant ZERO_BYTES32 = bytes32(0);
+    uint256 private constant ZERO_UINT256 = uint256(0);
 
     event BattleWon (
         address winner,
@@ -24,6 +26,7 @@ contract Battle {
         address playerOne;
         address playerTwo;
         bool created;
+        bool canResolve;
         bool started;
         bool finished;
         uint256 battleParamsIdx;
@@ -83,7 +86,7 @@ contract Battle {
     ) public {
         require(battles[battleId].started == true, "Battle has not started or does not exist");
         if (!battleParamsArr[battleId].created) {
-            bytes32[10] memory emptyBytes = new bytes32[10](
+            bytes32[10] memory emptyBytes = [
                 ZERO_BYTES32,
                 ZERO_BYTES32,
                 ZERO_BYTES32,
@@ -94,8 +97,19 @@ contract Battle {
                 ZERO_BYTES32,
                 ZERO_BYTES32,
                 ZERO_BYTES32
-            );
-            uint256[10] memory emptyValues = new uint256[10](0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+            ];
+            uint256[10] memory emptyValues = [
+                ZERO_UINT256,
+                ZERO_UINT256,
+                ZERO_UINT256,
+                ZERO_UINT256,
+                ZERO_UINT256,
+                ZERO_UINT256,
+                ZERO_UINT256,
+                ZERO_UINT256,
+                ZERO_UINT256,
+                ZERO_UINT256
+            ];
             BattleParams memory battleParams = BattleParams({
                 created: true,
                 firstRollsSubmitted: false,
@@ -144,7 +158,7 @@ contract Battle {
             }
 
             for (uint256 i = 0; i < 10; i++) {
-                require(hashes[i] == keccak256(resolutionValues[i]), "Submitted value does not match preimage");
+                require(hashes[i] == keccak256(abi.encode(resolutionValues[i])), "Submitted value does not match preimage");
             }
             battleParamsArr[battleId].firstRollsSubmitted = true;
         } else {
@@ -158,7 +172,7 @@ contract Battle {
             }
 
             for (uint256 i = 0; i < 10; i++) {
-                require(hashes[i] == keccak256(resolutionValues[i]), "Submitted value does not match preimage");
+                require(hashes[i] == keccak256(abi.encode(resolutionValues[i])), "Submitted value does not match preimage");
             }
             battles[battleId].finished = true;
             emit BattleWon(
@@ -169,7 +183,7 @@ contract Battle {
     }
 
     function determineWinner(
-        uint256[10] memory resolutionValues,
+        uint256[10] memory, // resolutionValues */,
         uint256 battleId
     ) internal view returns (address) {
         return battles[battleId].playerOne;

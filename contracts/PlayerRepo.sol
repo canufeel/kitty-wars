@@ -44,13 +44,12 @@ contract PlayerRepo {
                 address(this),
                 kittyId
             );
-        Player memory player = Player({
+        players[msg.sender] = Player({
             weapon: uint256(0),
             armor: uint256(0),
             kittyId: kittyId,
             enabled: true
         });
-        players[msg.sender] = Player;
         emit PlayerAdded(
             kittyId
         );
@@ -62,8 +61,8 @@ contract PlayerRepo {
         uint256 kittyId,
         bool enabled
     ) {
-        weaponId = players[playerAddress].weaponId;
-        armorId = players[playerAddress].armorId;
+        weaponId = players[playerAddress].weapon;
+        armorId = players[playerAddress].armor;
         kittyId = players[playerAddress].kittyId;
         enabled = players[playerAddress].enabled;
     }
