@@ -356,23 +356,23 @@ contract('Kitty', function ([
     let curDamage;
     let totalDamageOne = new BigNumber(0);
     let totalDamageTwo = new BigNumber(0);
-    rounds.forEach(
-        (cur, idx) => {
-          if (idx % 2 !== 0) {
-            curDamage = cur.mul(modifiers[0]).sub(
-                cur.mul(modifiers[1])
-            );
-            curDamage = curDamage.lt(new BigNumber(0)) ? new BigNumber(0) : curDamage;
-            totalDamageOne = totalDamageOne.add(curDamage);
-          } else {
-            curDamage = cur.mul(modifiers[2]).sub(
-                cur.mul(modifiers[3])
-            );
-            curDamage = curDamage.lt(new BigNumber(0)) ? new BigNumber(0) : curDamage;
-            totalDamageTwo = totalDamageTwo.add(curDamage);
-          }
-        }
-    );
+    for (let idx = 0; idx < 10; idx += 2) {
+      const roundA = rounds[idx];
+      const roundD = rounds[idx + 1];
+
+      if (idx % 4 !== 0 && idx !== 9) {
+        curDamage = roundA.mul(modifiers[0]);
+        curDamage = curDamage.lte(roundD.mul(modifiers[1])) ? new BigNumber(0) : curDamage.sub(roundD.mul(modifiers[1]));
+        totalDamageOne = totalDamageOne.add(curDamage);
+      } else if (idx !== 9) {
+        curDamage = roundA.mul(modifiers[2]);
+        curDamage = curDamage.lte(roundD.mul(modifiers[3])) ? new BigNumber(0) : curDamage.sub(roundD.mul(modifiers[3]));
+        totalDamageTwo = totalDamageTwo.add(curDamage);
+      } else {
+        totalDamageOne = totalDamageOne.add(roundA.mul(modifiers[0]));
+        totalDamageTwo = totalDamageTwo.add(roundD.mul(modifiers[2]));
+      }
+    }
 
     let testWinner;
     if (totalDamageOne.gt(totalDamageTwo)) {
