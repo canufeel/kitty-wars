@@ -158,7 +158,10 @@ contract Battle {
             }
 
             for (uint256 i = 0; i < 10; i++) {
-                require(hashes[i] == keccak256(abi.encode(resolutionValues[i])), "Submitted value does not match preimage");
+                require(
+                    hashes[i] == keccak256(abi.encode(resolutionValues[i])),
+                    "Submitted value does not match preimage"
+                );
             }
             battleParamsArr[battleId].firstRollsSubmitted = true;
         } else {
@@ -172,7 +175,10 @@ contract Battle {
             }
 
             for (uint256 i = 0; i < 10; i++) {
-                require(hashes[i] == keccak256(abi.encode(resolutionValues[i])), "Submitted value does not match preimage");
+                require(
+                    hashes[i] == keccak256(abi.encode(resolutionValues[i])),
+                    "Submitted value does not match preimage"
+                );
             }
             battles[battleId].finished = true;
             emit BattleWon(
@@ -183,7 +189,7 @@ contract Battle {
     }
 
     function determineWinner(
-        uint256[10] memory, // resolutionValues */,
+        uint256[10] memory resolutionValues,
         uint256 battleId
     ) internal view returns (address) {
         return battles[battleId].playerOne;

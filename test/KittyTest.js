@@ -1,18 +1,17 @@
 const KittyOwnership = artifacts.require("KittyOwnership.sol");
 const PlayerRepo = artifacts.require('./PlayerRepo.sol');
 const Item = artifacts.require('./ItemOwnership.sol');
+const Battle = artifacts.require('./Battle.sol');
 
 const createKittyContract = () => KittyOwnership.new();
 
 const createPlayerRepo = ({
   kittyContract,
   owner,
-  weaponContract,
-  armorContract
+  itemContract,
 }) => PlayerRepo.new(
   kittyContract.address,
-  weaponContract.address,
-  armorContract.address,
+  itemContract.address,
   { from: owner }
 );
 
@@ -59,18 +58,68 @@ const createKitties = async ({
 const deployPlayerItems = async ({
   owner,
 }) => {
-  const armorContract = await Item.new();
-  const weaponContract = await Item.new();
+  const itemContract = await Item.new();
   return {
-    weaponContract,
-    armorContract,
+    itemContract,
   };
 };
 
+
 const deployBattleContract = async ({
   owner,
-}) => {
+  playerRepo
+}) => Battle.new(playerRepo.address, { from: owner });
 
+
+const setupGameWithTwoPlayers = async ({
+  owner,
+  kittyOneOwner,
+  kittyTwoOwner,
+}) => {
+  const kittyContract = await createKittyContract();
+  const {
+    kittyIdOne,
+    kittyIdTwo
+  } = await createKitties({
+    owner,
+    kittyContract,
+    kittyOneOwner,
+    kittyTwoOwner,
+  });
+  const {
+    itemContract,
+  } = await deployPlayerItems({
+    owner,
+  });
+  const playerRepo = await createPlayerRepo({
+    kittyContract,
+    itemContract,
+    owner,
+  });
+  await kittyContract.approve(
+    playerRepo.address,
+    kittyIdOne,
+    { from: kittyOneOwner }
+  );
+  await kittyContract.approve(
+    playerRepo.address,
+    kittyIdTwo,
+    { from: kittyTwoOwner }
+  );
+  await playerRepo.addPlayer(kittyIdTwo, { from: kittyTwoOwner });
+  await playerRepo.addPlayer(kittyIdOne, { from: kittyOneOwner });
+  const battle = await deployBattleContract({
+    playerRepo,
+    owner,
+  });
+  return {
+    battle,
+    playerRepo,
+    weaponContract,
+    armorContract,
+    kittyIdOne,
+    kittyIdTwo,
+  };
 };
 
 contract('Kitty', function ([
@@ -89,45 +138,32 @@ contract('Kitty', function ([
       kittyOneOwner,
       kittyTwoOwner,
     });
-    console.log(kittyIdOne.toString());
-    console.log(kittyIdTwo.toString());
+    assert.ok(!!kittyIdOne.toString());
+    assert.ok(!!kittyIdTwo.toString());
   });
 
   it('create player', async function () {
-    const kittyContract = await createKittyContract();
-    const {
-      kittyIdOne,
-      kittyIdTwo
-    } = await createKitties({
+    await setupGameWithTwoPlayers({
       owner,
-      kittyContract,
       kittyOneOwner,
       kittyTwoOwner,
     });
+    assert.ok(true);
+  });
+
+  it('can submit battle values up to determinWinner', async function () {
     const {
+      battle,
+      playerRepo,
       weaponContract,
       armorContract,
-    } = await deployPlayerItems({
-      owner,
-    });
-    const playerRepo = await createPlayerRepo({
-      kittyContract,
-      weaponContract,
-      armorContract,
-      owner,
-    });
-    await kittyContract.approve(
-      playerRepo.address,
       kittyIdOne,
-      { from: kittyOneOwner }
-    );
-    await kittyContract.approve(
-      playerRepo.address,
       kittyIdTwo,
-      { from: kittyTwoOwner }
-    );
-    await playerRepo.addPlayer(kittyIdTwo, { from: kittyTwoOwner });
-    await playerRepo.addPlayer(kittyIdOne, { from: kittyOneOwner });
-    debugger;
+    } = await setupGameWithTwoPlayers({
+      owner,
+      kittyOneOwner,
+      kittyTwoOwner,
+    });
+
   });
 });
