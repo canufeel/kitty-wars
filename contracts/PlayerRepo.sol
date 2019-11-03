@@ -5,6 +5,10 @@ import "./ERC721.sol";
 
 contract PlayerRepo {
 
+    event PlayerAdded(
+        uint256 kittyId
+    );
+
     struct Player {
         uint256 weapon;
         uint256 armor;
@@ -50,5 +54,17 @@ contract PlayerRepo {
         emit PlayerAdded(
             kittyId
         );
+    }
+
+    function getPlayer(address playerAddress) public view returns (
+        uint256 weaponId,
+        uint256 armorId,
+        uint256 kittyId,
+        bool enabled
+    ) {
+        weaponId = players[playerAddress].weaponId;
+        armorId = players[playerAddress].armorId;
+        kittyId = players[playerAddress].kittyId;
+        enabled = players[playerAddress].enabled;
     }
 }

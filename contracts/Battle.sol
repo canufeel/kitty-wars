@@ -1,5 +1,6 @@
 pragma solidity ^0.5.8;
 
+import "./IPlayerRepo.sol";
 
 contract Battle {
     bytes32 private constant ZERO_BYTES32 = bytes32(0);
@@ -19,7 +20,7 @@ contract Battle {
         uint256 battleId
     );
 
-    struct Battle {
+    struct BattleStruct {
         address playerOne;
         address playerTwo;
         bool created;
@@ -37,7 +38,7 @@ contract Battle {
         bool firstRollsSubmitted;
     }
 
-    Battle[] public battles;
+    BattleStruct[] public battles;
     BattleParams[] public battleParamsArr;
 
     mapping (address => bool) isBattling;
@@ -50,11 +51,14 @@ contract Battle {
     }
 
     function startBattle(uint256 battleId) public {
-        require(playerRepo.players[msg.sender].enabled == true, "Player not found");
+        (
+        ,,, bool enabled
+        ) = IPlayerRepo(playerRepo).getPlayer(msg.sender);
+        require(enabled == true, "Player not found");
         require(isBattling[msg.sender] == false, "Can not participate in 2 battles");
         isBattling[msg.sender] = true;
         if (battleId == 0) {
-            Battle memory battle = Battle({
+            BattleStruct memory battle = BattleStruct({
                 playerOne: msg.sender,
                 playerTwo: address(0),
                 created: true,
@@ -117,15 +121,15 @@ contract Battle {
             } else {
                 revert("Invalid player");
             }
-            battle[battleId].canResolve = true;
+            battles[battleId].canResolve = true;
         }
     }
 
     function submitBattleResolution(
-        uint256[10] resolutionValues,
+        uint256[10] memory resolutionValues,
         uint256 battleId
     ) public {
-        require(battle[battleId].canResolve == true, "Battle can not be resolved yet");
+        require(battles[battleId].canResolve == true, "Battle can not be resolved yet");
         require(!battles[battleId].finished, "Battle already finished");
         if (!battleParamsArr[battleId].firstRollsSubmitted) {
             bytes32[10] memory hashes;
@@ -165,7 +169,7 @@ contract Battle {
     }
 
     function determineWinner(
-        uint256[10] resolutionValues,
+        uint256[10] memory resolutionValues,
         uint256 battleId
     ) internal view returns (address) {
         return battles[battleId].playerOne;

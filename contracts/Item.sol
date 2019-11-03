@@ -19,12 +19,12 @@ contract Item is ERC721 {
 
     enum Type { WEAPON, ARMOR }
 
-    struct Item {
-        Type type;
+    struct PlayerItemStruct {
+        Type itemType;
         uint256 power;
     }
 
-    Item[] public allItems;
+    PlayerItemStruct[] public allItems;
     // address => amount of tokens (items)
     mapping (address => uint256) itemOwnershipCount;
     // itemID => owner address
@@ -33,29 +33,60 @@ contract Item is ERC721 {
     mapping (uint256 => address) itemToApproved;
 
     constructor() public {
-        Item zeroItem = new Item(Type.WEAPON, 0);
+        PlayerItemStruct memory zeroItem = new Item(Type.WEAPON, 0);
         allItems.push(zeroItem);
     }
 
     function transfer(address _to, uint256 _tokenId) external {
-        require(_to != address(0), "No zero address!");
-        require(_owns(msg.sender, _tokenId), "You do not own this cat!");
+        // Safety check to prevent against an unexpected 0x0 default.
+        require(_to != address(0));
+        // Disallow transfers to this contract to prevent accidental misuse.
+        // The contract should never own any kitties (except very briefly
+        // after a gen0 cat is created and before it goes on auction).
+        require(_to != address(this));
 
-        itemOwnershipCount[_to]++;
-        itemToOwner[_tokenId] = _to;
+        // You can only send your own cat.
+        require(_owns(msg.sender, _tokenId));
 
-        if (from != address(0)) {
-            itemOwnershipCount[to]--;
-            delete itemToApproved[_tokenId];
-        }
-
-        emit Transfer(msg.sender, _to, _tokenId);
+        // Reassign ownership, clear pending approvals, emit Transfer event.
+        _transfer(msg.sender, _to, _tokenId);
     }
 
-    function transferFrom(address _from, address _to, uint256 _tokenId) external {
-        require(_to != address(0), "No Zero address in transferFrom().");
-        require(_to != address(this), "Not this contract.");
+    /// @dev Assigns ownership of a specific Kitty to an address.
+    function _transfer(address _from, address _to, uint256 _tokenId) internal {
+        // Since the number of kittens is capped to 2^32 we can't overflow this
+        itemOwnershipCount[_to]++;
+        // transfer ownership
+        itemToOwner[_tokenId] = _to;
+        // When creating new kittens _from is 0x0, but we can't account that address.
+        if (_from != address(0)) {
+            itemOwnershipCount[_from]--;
+            // once the kitten is transferred also clear sire allowances
+            delete itemToApproved[_tokenId];
+        }
+        // Emit the transfer event.
+        emit Transfer(_from, _to, _tokenId);
+    }
 
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _tokenId
+    )
+    external
+    {
+        // Safety check to prevent against an unexpected 0x0 default.
+        require(_to != address(0));
+        // Disallow transfers to this contract to prevent accidental misuse.
+        // The contract should never own any kitties (except very briefly
+        // after a gen0 cat is created and before it goes on auction).
+        require(_to != address(this));
+        // Check for approval and valid ownership
+        require(_approvedFor(msg.sender, _tokenId));
+        require(_owns(_from, _tokenId));
+
+        // Reassign ownership (also clears pending approvals and emits Transfer event).
+        _transfer(_from, _to, _tokenId);
     }
 
     function approve(address to, uint256 itemId) external {
@@ -70,20 +101,20 @@ contract Item is ERC721 {
         require(owner != address(0), "No one owns this item.");
     }
 
-    function create(Type type, uint256 power) public returns (uint256 itemId) {
+    function create(Type itemType, uint256 power) public returns (uint256 itemId) {
         require(power <= 10, "Power has to be <= 10.");
         require(
-            type == Type.WEAPON || type == Type.ARMOR,
-            "Wrong item type. Only Weapon (0) or Armor (1) available"
+            itemType == Type.WEAPON || itemType == Type.ARMOR,
+            "Wrong item itemType. Only Weapon (0) or Armor (1) available"
         );
 
-        Item newItem = new Item(type, power);
+        PlayerItemStruct memory newItem = new Item(itemType, power);
         allItems.push(newItem);
         itemId = allItems.length - 1;
 
         emit ItemCreated(
             itemId,
-            type,
+            itemType,
             power
         );
 
@@ -99,10 +130,10 @@ contract Item is ERC721 {
     }
 
     function _approvedFor(address _claimant, uint256 _tokenId) internal view returns (bool) {
-        return itemToApproves[_tokenId] == _claimant;
+        return itemToApproved[_tokenId] == _claimant;
     }
 
     function _owns(address _claimant, uint256 _itemId) internal view returns (bool) {
-        return itemToOwner[itemId] == _claimant;
+        return itemToOwner[_itemId] == _claimant;
     }
 }
