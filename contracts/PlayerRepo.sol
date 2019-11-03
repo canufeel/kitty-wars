@@ -72,7 +72,8 @@ contract PlayerRepo is ItemTypeDataType {
     }
 
     function assignItem(
-        uint256 itemId
+        uint256 itemId,
+        address toPlayer
     ) public {
         ERC721 itemToken = ERC721(itemAddress);
 
@@ -80,16 +81,23 @@ contract PlayerRepo is ItemTypeDataType {
             itemToken.ownerOf(itemId) == msg.sender,
             "You have to own the Item."
         );
+        itemToken
+            .transferFrom(
+                msg.sender,
+                address(this),
+                itemId
+            );
 
-        uint256 kittyId = players[msg.sender].kittyId;
+        require(players[toPlayer].enabled, "Player does not exist");
+        uint256 kittyId = players[toPlayer].kittyId;
 
         (
             ItemType itemType,
         ) = IItemBase(itemAddress).getItem(itemId);
         if (itemType == ItemType.WEAPON) {
-            players[msg.sender].weaponId = itemId;
+            players[toPlayer].weaponId = itemId;
         } else {
-            players[msg.sender].armorId = itemId;
+            players[toPlayer].armorId = itemId;
         }
 
         emit ItemAssigned(
