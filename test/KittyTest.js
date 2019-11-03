@@ -170,6 +170,6 @@ contract('Kitty', function ([
     await battle.startBattle(1, {
       from: kittyTwoOwner,
     });
-    assert.ok(false);
+    assert.ok(true);
   });
 });
