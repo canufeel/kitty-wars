@@ -11,6 +11,8 @@ contract Battle {
 
     event BattleWon (
         address winner,
+        uint256 damageWinner,
+        uint256 damageLoser,
         uint256 battleId
     );
 
@@ -241,8 +243,15 @@ contract Battle {
                 );
             }
             battles[battleId].finished = true;
+            (
+                address winner,
+                uint256 damageWinner,
+                uint256 damageLoser
+            ) = determineWinner(resolutionValues, battleId);
             emit BattleWon(
-                determineWinner(resolutionValues, battleId),
+                winner,
+                damageWinner,
+                damageLoser,
                 battleId
             );
         }
@@ -251,7 +260,11 @@ contract Battle {
     function determineWinner(
         uint256[10] memory resolutionValues,
         uint256 battleId
-    ) internal view returns (address) {
+    ) internal view returns (
+        address winner,
+        uint256 damageWinner,
+        uint256 damageLoser
+    ) {
         uint256[10] memory existingRolls;
         if (msg.sender == battles[battleId].playerOne) {
             existingRolls = battleParamsArr[battleId].playerTwoRolls;
@@ -285,16 +298,23 @@ contract Battle {
             }
         }
 
-        address winner;
         if (totalDamages[0] > totalDamages[1]) {
             winner = battles[battleId].playerOne;
+            damageWinner = totalDamages[0];
+            damageLoser = totalDamages[1];
         } else if (totalDamages[0] < totalDamages[1]) {
             winner = battles[battleId].playerTwo;
+            damageWinner = totalDamages[1];
+            damageLoser = totalDamages[0];
         } else {
             revert("DRAW! Play again!");
         }
 
-        return winner;
+        return (
+            winner,
+            damageWinner,
+            damageLoser
+        );
     }
 
     function getModifiers(
