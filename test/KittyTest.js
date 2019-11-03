@@ -355,7 +355,7 @@ contract('Kitty', function ([
     let curDamage;
     let totalDamageOne = new BigNumber(0);
     let totalDamageTwo = new BigNumber(0);
-    rounds.map(
+    rounds.forEach(
         (cur, idx) => {
           if (idx % 2 !== 0) {
             curDamage = cur.mul(modifiers[0]).sub(
