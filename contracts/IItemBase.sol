@@ -8,4 +8,9 @@ contract IItemBase is ItemTypeDataType {
         ItemType itemType,
         uint256 itemPower
     );
+
+    function forge(
+        ItemType itemType,
+        uint256 power
+    ) public returns (uint256 itemId);
 }
