@@ -51,17 +51,65 @@ contract Battle {
     constructor (address _playerRepo) public {
         require(_playerRepo != address(0));
         playerRepo = _playerRepo;
+        battles.push(BattleStruct({
+            playerOne: address(0),
+            playerTwo: address(0),
+            created: false,
+            started: false,
+            canResolve: false,
+            finished: false,
+            battleParamsIdx: 0
+        }));
+        bytes32[10] memory emptyBytes = [
+            ZERO_BYTES32,
+            ZERO_BYTES32,
+            ZERO_BYTES32,
+            ZERO_BYTES32,
+            ZERO_BYTES32,
+            ZERO_BYTES32,
+            ZERO_BYTES32,
+            ZERO_BYTES32,
+            ZERO_BYTES32,
+            ZERO_BYTES32
+        ];
+        uint256[10] memory emptyValues = [
+            ZERO_UINT256,
+            ZERO_UINT256,
+            ZERO_UINT256,
+            ZERO_UINT256,
+            ZERO_UINT256,
+            ZERO_UINT256,
+            ZERO_UINT256,
+            ZERO_UINT256,
+            ZERO_UINT256,
+            ZERO_UINT256
+        ];
+        BattleParams memory battleParams = BattleParams({
+            created: false,
+            firstRollsSubmitted: false,
+            playerOneHashes: emptyBytes,
+            playerTwoHashes: emptyBytes,
+            playerOneRolls: emptyValues,
+            playerTwoRolls: emptyValues
+        });
+        battleParamsArr.push(battleParams);
     }
 
     function startBattle(uint256 battleId) public {
         (
-        ,,, bool enabled
+            ,
+            ,
+            ,
+            bool enabled
         ) = IPlayerRepo(playerRepo).getPlayer(msg.sender);
         require(enabled == true, "Player not found");
-        require(isBattling[msg.sender] == false, "Can not participate in 2 battles");
+        require(
+            isBattling[msg.sender] == false,
+            "Can not participate in 2 battles"
+        );
         isBattling[msg.sender] = true;
         if (battleId == 0) {
-            BattleStruct memory battle = BattleStruct({
+            battles.push(BattleStruct({
                 playerOne: msg.sender,
                 playerTwo: address(0),
                 created: true,
@@ -69,11 +117,13 @@ contract Battle {
                 canResolve: false,
                 finished: false,
                 battleParamsIdx: battles.length
-            });
-            battles.push(battle);
-            emit BattleCreated(msg.sender, battles.length);
+            }));
+            emit BattleCreated(msg.sender, battles.length - 1);
         } else {
-            require(battles[battleId].created == true, "Battle id does not exist");
+            require(
+                battles[battleId].created == true,
+                "Battle id does not exist"
+            );
             battles[battleId].playerTwo = msg.sender;
             battles[battleId].started = true;
             emit BattleJoined(msg.sender, battleId);

@@ -197,6 +197,14 @@ contract('Kitty', function ([
       kittyTwoOwner,
     });
 
+    await battle.startBattle(0, {
+      from: kittyOneOwner,
+    });
+
+    await battle.startBattle(1, {
+      from: kittyTwoOwner,
+    });
+    assert.ok(true);
   });
 
   it('can assign both weapons for both players', async function () {
