@@ -121,7 +121,6 @@ contract KittyOwnership is KittyBase, ERC721 {
         uint256 _tokenId
     )
         external
-        whenNotPaused
     {
         // Only an owner can grant transfer approval.
         require(_owns(msg.sender, _tokenId));

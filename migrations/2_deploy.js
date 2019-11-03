@@ -9,5 +9,5 @@ module.exports = async function(deployer) {
   await deployer.deploy(ItemOwnership);
   await deployer.deploy(PlayerRepo, KittyOwnership.address, ItemOwnership.address);
   await deployer.deploy(Battle, PlayerRepo.address, ItemOwnership.address);
-  await deployer.deploy(Proxy, ItemOwnership.address, PlayerRepo.address);
+  await deployer.deploy(Proxy, ItemOwnership.address, PlayerRepo.address, KittyOwnership.address);
 };
