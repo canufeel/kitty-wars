@@ -81,10 +81,6 @@ contract PlayerRepo is ItemBase {
         );
 
         uint256 kittyId = players[msg.sender].kittyId;
-        require(
-            kittyToken.ownerOf(kittyId) == msg.sender,
-            "You have to own the Kitty."
-        );
 
         ItemType itemType = allItems[itemId].itemType;
         if (itemType == ItemType.WEAPON) {

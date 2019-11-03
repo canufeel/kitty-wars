@@ -3,6 +3,9 @@ const PlayerRepo = artifacts.require('./PlayerRepo.sol');
 const Item = artifacts.require('./ItemOwnership.sol');
 const Battle = artifacts.require('./Battle.sol');
 
+const weaponType = 0;
+const armorType = 1;
+
 const createKittyContract = () => KittyOwnership.new();
 
 const createPlayerRepo = ({
@@ -55,21 +58,38 @@ const createKitties = async ({
   };
 };
 
-const deployPlayerItems = async ({
+const deployItemContract = async ({
   owner,
 }) => {
   const itemContract = await Item.new();
-  return {
-    itemContract,
-  };
+  return itemContract;
 };
 
+const onePlayerFullEquip = async ({
+  itemContract,
+  playerContract,
+  playerAddress,
+  weaponPower,
+  armorPower
+}) => {
+  await itemContract.forge(weaponType, weaponPower, { from: playerAddress });
+  let logs = await itemContract.getPastEvents('ItemForged');
+  let args = logs.find(e => e.event === 'ItemForged').args;
+  const weaponId = args[0];
+
+  await itemContract.forge(armorType, armorPower, { from: playerAddress });
+  logs = await itemContract.getPastEvents('ItemForged');
+  args = logs.find(e => e.event === 'ItemForged').args;
+  const armorId = args[0];
+
+  await playerContract.assignItem(weaponId, { from: playerAddress });
+  await playerContract.assignItem(armorId, { from: playerAddress });
+};
 
 const deployBattleContract = async ({
   owner,
   playerRepo
 }) => Battle.new(playerRepo.address, { from: owner });
-
 
 const setupGameWithTwoPlayers = async ({
   owner,
@@ -86,9 +106,7 @@ const setupGameWithTwoPlayers = async ({
     kittyOneOwner,
     kittyTwoOwner,
   });
-  const {
-    itemContract,
-  } = await deployPlayerItems({
+  const itemContract = await deployItemContract({
     owner,
   });
   const playerRepo = await createPlayerRepo({
@@ -108,6 +126,22 @@ const setupGameWithTwoPlayers = async ({
   );
   await playerRepo.addPlayer(kittyIdTwo, { from: kittyTwoOwner });
   await playerRepo.addPlayer(kittyIdOne, { from: kittyOneOwner });
+
+  await onePlayerFullEquip({
+    itemContract,
+    playerContract: playerRepo,
+    playerAddress: kittyOneOwner,
+    weaponPower: 7,
+    armorPower: 3
+  });
+  await onePlayerFullEquip({
+    itemContract,
+    playerContract: playerRepo,
+    playerAddress: kittyTwoOwner,
+    weaponPower: 5,
+    armorPower: 4
+  });
+
   const battle = await deployBattleContract({
     playerRepo,
     owner,
@@ -151,6 +185,21 @@ contract('Kitty', function ([
   });
 
   it('can submit battle values up to determinWinner', async function () {
+    const {
+      battle,
+      playerRepo,
+      itemContract,
+      kittyIdOne,
+      kittyIdTwo,
+    } = await setupGameWithTwoPlayers({
+      owner,
+      kittyOneOwner,
+      kittyTwoOwner,
+    });
+
+  });
+
+  it('can assign both weapons for both players', async function () {
     const {
       battle,
       playerRepo,

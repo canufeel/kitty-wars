@@ -2,7 +2,7 @@ pragma solidity ^0.5.8;
 
 
 contract ItemBase {
-    event ItemCreated(
+    event ItemForged(
         uint256 itemId,
         ItemType itemType,
         uint256 itemPower
@@ -42,11 +42,13 @@ contract ItemBase {
         allItems.push(newItem);
         itemId = allItems.length - 1;
 
-        emit ItemCreated(
+        emit ItemForged(
             itemId,
             itemType,
             power
         );
+
+        _transfer(address (0), msg.sender, itemId);
 
         return itemId;
     }
