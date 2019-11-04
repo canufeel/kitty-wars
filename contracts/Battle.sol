@@ -8,17 +8,11 @@ contract Battle {
     bytes32 private constant ZERO_BYTES32 = bytes32(0);
     uint256 private constant ZERO_UINT256 = uint256(0);
 
-    uint256 private constant PLAYER_HITPOINTS = uint256(100);
-
     event BattleWon (
         address winner,
         uint256 damageWinner,
         uint256 damageLoser,
         uint256 battleId
-    );
-
-    event DamageUpdate(
-        uint256 value
     );
 
     event BattleCreated (
@@ -27,6 +21,16 @@ contract Battle {
     );
 
     event BattleJoined (
+        address player,
+        uint256 battleId
+    );
+
+    event BattleCommitmentsSent(
+        address player,
+        uint256 battleId
+    );
+
+    event BattleCommitmentResolved(
         address player,
         uint256 battleId
     );
@@ -193,6 +197,10 @@ contract Battle {
             }
 
             battleParamsArr.push(battleParams);
+            emit BattleCommitmentsSent(
+                msg.sender,
+                battleId
+            );
         } else if (battleParamsArr.length > battleId) {
             if (msg.sender == battles[battleId].playerOne) {
                 battleParamsArr[battleId].playerOneHashes = hashes;
@@ -202,6 +210,10 @@ contract Battle {
                 revert("Invalid player");
             }
             battles[battleId].canResolve = true;
+            emit BattleCommitmentsSent(
+                msg.sender,
+                battleId
+            );
         } else {
             revert("Invalid battleId");
         }
@@ -232,6 +244,10 @@ contract Battle {
                 );
             }
             battleParamsArr[battleId].firstRollsSubmitted = true;
+            emit BattleCommitmentResolved(
+                msg.sender,
+                battleId
+            );
         } else {
             bytes32[10] memory hashes;
             if (msg.sender == battles[battleId].playerOne) {

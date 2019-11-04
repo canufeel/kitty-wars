@@ -6,7 +6,7 @@ import "./ItemTypeDataType.sol";
 contract IPlayerRepo is ItemTypeDataType {
     event PlayerAdded(
         uint256 kittyId,
-        address playerAddress
+        address indexed playerAddress
     );
 
     event ItemAssigned(
