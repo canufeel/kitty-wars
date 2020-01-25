@@ -10,9 +10,22 @@
     "ganache-cli": "^6.7.0",
     "truffle": "^5.0.43"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@babel/cli": "^7.8.3",
+    "@babel/core": "^7.8.3",
+    "@babel/plugin-transform-runtime": "^7.8.3",
+    "@babel/preset-env": "^7.8.3",
+    "@babel/register": "^7.8.3",
+    "@babel/runtime": "^7.8.3",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.8.0",
+    "eslint-config-node-strict": "^0.0.2",
+    "eslint-plugin-import": "^2.20.0"
+  },
   "scripts": {
-    "test": "node ./node_modules/.bin/truffle test",
+    "test:contracts": "node --require ./mocha-require.js ./node_modules/.bin/truffle test",
+    "lint:js": "eslint --ext .js ./test",
+    "test": "yarn lint:js && yarn test:contracts",
     "ganache": "node ./node_modules/.bin/ganache-cli"
   },
   "author": "",

@@ -1,186 +1,13 @@
-const KittyOwnership = artifacts.require("KittyOwnership.sol");
-const PlayerRepo = artifacts.require('./PlayerRepo.sol');
-const Item = artifacts.require('./ItemOwnership.sol');
-const Battle = artifacts.require('./Battle.sol');
-const Proxy = artifacts.require('./Proxy.sol');
+import {
+  createKitties,
+  createKittyContract, createPlayerRepo,
+  deployItemContract, deployProxy,
+  generateNumsAndHashesArr,
+  setupGameWithTwoPlayers
+} from './helpers';
 
 const BigNumber = web3.utils.BN;
-
-const weaponType = 0;
-const armorType = 1;
 const hundred = new BigNumber(100);
-
-const createKittyContract = () => KittyOwnership.new();
-
-const createPlayerRepo = ({
-  kittyContract,
-  owner,
-  itemContract,
-}) => PlayerRepo.new(
-  kittyContract.address,
-  itemContract.address,
-  { from: owner }
-);
-
-const deployProxy = ({
-  owner,
-  itemContract,
-  playerRepoContract,
-  kittyContract
-}) => Proxy.new(
-  itemContract.address,
-  playerRepoContract.address,
-  kittyContract.address,
-  {
-    from: owner,
-  }
-);
-
-const createKitties = async ({
-  kittyOneOwner,
-  kittyTwoOwner,
-  owner,
-  kittyContract,
-}) => {
-  const {
-    logs: [{
-      args: {
-        kittyId: kittyIdOne
-      }
-    }]
-  } = await kittyContract.createKitty(
-    1, // uint256 _matronId,
-    1, // uint256 _sireId,
-    1, // uint256 _generation,
-    1, // uint256 _genes,
-    kittyOneOwner, // address _owner
-    { from: owner }
-  );
-  const {
-    logs: [{
-      args: {
-        kittyId: kittyIdTwo
-      }
-    }]
-  } = await kittyContract.createKitty(
-    2, // uint256 _matronId,
-    2, // uint256 _sireId,
-    1, // uint256 _generation,
-    2, // uint256 _genes,
-    kittyTwoOwner, // address _owner
-    { from: owner }
-  );
-  return {
-    kittyIdOne,
-    kittyIdTwo
-  };
-};
-
-const deployItemContract = async () => {
-  const itemContract = await Item.new();
-  return itemContract;
-};
-
-const onePlayerFullEquip = async ({
-  proxyContract,
-  playerAddress,
-  weaponPower,
-  armorPower
-}) => {
-  await proxyContract.loot(weaponPower, armorPower, {
-    from: playerAddress,
-  });
-};
-
-const deployBattleContract = async ({
-  owner,
-  playerRepo,
-  itemContract
-}) => Battle.new(playerRepo.address, itemContract.address, { from: owner });
-
-const setupGameWithTwoPlayers = async ({
-  owner,
-  kittyOneOwner,
-  kittyTwoOwner,
-}) => {
-  const kittyContract = await createKittyContract();
-  const itemContract = await deployItemContract({
-    owner,
-  });
-  const playerRepo = await createPlayerRepo({
-    kittyContract,
-    itemContract,
-    owner,
-  });
-  const proxyContract = await deployProxy({
-    owner,
-    playerRepoContract: playerRepo,
-    itemContract,
-    kittyContract,
-  });
-
-  await proxyContract.join({ from: kittyOneOwner });
-  const logsOne = await playerRepo.getPastEvents('PlayerAdded');
-  await proxyContract.join({ from: kittyTwoOwner });
-  const logsTwo = await playerRepo.getPastEvents('PlayerAdded');
-
-
-  const argsOneArr = logsOne
-    .filter(e => e.event === 'PlayerAdded')
-    .map(({ args }) => args);
-  const kittyIdOne = argsOneArr.find(({ playerAddress }) => playerAddress === kittyOneOwner).kittyId;
-  const argsTwoArr = logsTwo
-    .filter(e => e.event === 'PlayerAdded')
-    .map(({ args }) => args);
-  const kittyIdTwo = argsTwoArr.find(({ playerAddress }) => playerAddress === kittyTwoOwner).kittyId;
-
-  await onePlayerFullEquip({
-    proxyContract,
-    playerAddress: kittyOneOwner,
-    weaponPower: 7,
-    armorPower: 3
-  });
-  await onePlayerFullEquip({
-    proxyContract,
-    playerAddress: kittyTwoOwner,
-    weaponPower: 5,
-    armorPower: 4
-  });
-
-  const battle = await deployBattleContract({
-    playerRepo,
-    owner,
-    itemContract
-  });
-  return {
-    battle,
-    playerRepo,
-    itemContract,
-    kittyIdOne,
-    kittyIdTwo,
-  };
-};
-
-const generateRandomNum = () => web3.utils.randomHex(32);
-const getNumSha = (hashNum) => web3.utils.sha3(hashNum);
-
-const generateNumsAndHashesArr = () => {
-  const arr = new Array(10).fill(0);
-  const valuesArr = arr.map(() => {
-    const num = generateRandomNum();
-    const hash = getNumSha(num);
-    return {
-      num,
-      hash,
-    };
-  });
-  const numsArr = valuesArr.map(({ num }) => num);
-  const hashesArr = valuesArr.map(({ hash }) => hash);
-  return {
-    numsArr,
-    hashesArr,
-  };
-};
 
 contract('Kitty', function ([
   owner,
@@ -214,10 +41,6 @@ contract('Kitty', function ([
   it('can submit battle values up to commitBattleParams', async function () {
     const {
       battle,
-      playerRepo,
-      itemContract,
-      kittyIdOne,
-      kittyIdTwo,
     } = await setupGameWithTwoPlayers({
       owner,
       kittyOneOwner,
@@ -233,7 +56,6 @@ contract('Kitty', function ([
     });
 
     const {
-      numsArr: numsOneArr,
       hashesArr: hashesOneArr,
     } = generateNumsAndHashesArr();
     await battle.commitBattleParams(
@@ -242,7 +64,6 @@ contract('Kitty', function ([
       { from: kittyOneOwner }
     );
     const {
-      numsArr: numsTwoArr,
       hashesArr: hashesTwoArr,
     } = generateNumsAndHashesArr();
     await battle.commitBattleParams(
@@ -253,13 +74,7 @@ contract('Kitty', function ([
   });
 
   it('can assign both weapons for both players', async function () {
-    const {
-      battle,
-      playerRepo,
-      itemContract,
-      kittyIdOne,
-      kittyIdTwo,
-    } = await setupGameWithTwoPlayers({
+    await setupGameWithTwoPlayers({
       owner,
       kittyOneOwner,
       kittyTwoOwner,
@@ -269,10 +84,7 @@ contract('Kitty', function ([
   it('can submit battle values up and determine winner correctly', async function () {
     const {
       battle,
-      playerRepo,
       itemContract,
-      kittyIdOne,
-      kittyIdTwo,
     } = await setupGameWithTwoPlayers({
       owner,
       kittyOneOwner,
@@ -330,20 +142,20 @@ contract('Kitty', function ([
     for (let i = 0; i < 4; i++) {
       const {
         itemPower: power
-      } = await itemContract.getItem(i+1);
+      } = await itemContract.getItem(i + 1);
       modifiers[i] = power;
     }
 
     const rounds = numsOneArr.map(
-        (cur, idx) => {
-          return new BigNumber(cur.slice(2), 16)
+      (cur, idx) => {
+        return new BigNumber(cur.slice(2), 16)
+          .mod(hundred)
+          .add(
+            new BigNumber(numsTwoArr[idx].slice(2), 16)
               .mod(hundred)
-              .add(
-                  new BigNumber(numsTwoArr[idx].slice(2), 16)
-                      .mod(hundred)
-              )
-              .mod(hundred)
-        }
+          )
+          .mod(hundred);
+      }
     );
 
     let curDamage;
