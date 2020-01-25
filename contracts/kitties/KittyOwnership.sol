@@ -217,7 +217,7 @@ contract KittyOwnership is KittyBase, ERC721 {
     /// @dev Adapted from memcpy() by @arachnid (Nick Johnson <arachnid@notdot.net>)
     ///  This method is licenced under the Apache License.
     ///  Ref: https://github.com/Arachnid/solidity-stringutils/blob/2f6ca9accb48ae14c66f1437ec50ed19a0616f78/strings.sol
-    function _memcpy(uint _dest, uint _src, uint _len) private view {
+    function _memcpy(uint _dest, uint _src, uint _len) private pure {
         // Copy word-length chunks while possible
         for(; _len >= 32; _len -= 32) {
             assembly {
@@ -239,7 +239,7 @@ contract KittyOwnership is KittyBase, ERC721 {
     /// @dev Adapted from toString(slice) by @arachnid (Nick Johnson <arachnid@notdot.net>)
     ///  This method is licenced under the Apache License.
     ///  Ref: https://github.com/Arachnid/solidity-stringutils/blob/2f6ca9accb48ae14c66f1437ec50ed19a0616f78/strings.sol
-    function _toString(bytes32[4] memory _rawBytes, uint256 _stringLength) private view returns (string memory) {
+    function _toString(bytes32[4] memory _rawBytes, uint256 _stringLength) private pure returns (string memory) {
         string memory outputString = new string(_stringLength);
         uint256 outputPtr;
         uint256 bytesPtr;

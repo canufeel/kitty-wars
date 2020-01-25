@@ -12,8 +12,8 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "ganache": ""
+    "test": "node ./node_modules/.bin/truffle test",
+    "ganache": "node ./node_modules/.bin/ganache-cli"
   },
   "author": "",
   "license": "ISC"
