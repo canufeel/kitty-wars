@@ -72,18 +72,7 @@ export const createKitties = async ({
 
 export const deployItemContract = async () => Item.new();
 
-const onePlayerFullEquip = async ({
-  proxyContract,
-  playerAddress,
-  weaponPower,
-  armorPower
-}) => {
-  await proxyContract.loot(weaponPower, armorPower, {
-    from: playerAddress,
-  });
-};
-
-const deployBattleContract = async ({
+export const deployBattleContract = async ({
   owner,
   playerRepo,
   itemContract
@@ -110,9 +99,17 @@ export const setupGameWithTwoPlayers = async ({
     kittyContract,
   });
 
-  await proxyContract.join({ from: kittyOneOwner });
+  await proxyContract.newPlayer(
+    7, // weaponPower
+    3, // armorPower
+    { from: kittyOneOwner }
+  );
   const logsOne = await playerRepo.getPastEvents('PlayerAdded');
-  await proxyContract.join({ from: kittyTwoOwner });
+  await proxyContract.newPlayer(
+    5, // weaponPower
+    4, // armorPower
+    { from: kittyTwoOwner }
+  );
   const logsTwo = await playerRepo.getPastEvents('PlayerAdded');
 
 
@@ -124,19 +121,6 @@ export const setupGameWithTwoPlayers = async ({
     .filter(e => e.event === 'PlayerAdded')
     .map(({ args }) => args);
   const kittyIdTwo = argsTwoArr.find(({ playerAddress }) => playerAddress === kittyTwoOwner).kittyId;
-
-  await onePlayerFullEquip({
-    proxyContract,
-    playerAddress: kittyOneOwner,
-    weaponPower: 7,
-    armorPower: 3
-  });
-  await onePlayerFullEquip({
-    proxyContract,
-    playerAddress: kittyTwoOwner,
-    weaponPower: 5,
-    armorPower: 4
-  });
 
   const battle = await deployBattleContract({
     playerRepo,

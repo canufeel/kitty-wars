@@ -206,7 +206,7 @@ contract('Kitty', function ([
       kittyContract
     });
 
-    await proxyContract.join();
+    await proxyContract.newPlayer(2, 4);
 
     const logs = await playerRepoContract.getPastEvents('PlayerAdded');
     const { kittyId } = logs.find(e => e.event === 'PlayerAdded').args;

@@ -24,7 +24,18 @@ contract Proxy {
         kittyToken = _kittyToken;
     }
 
-    function join() public {
+    function newPlayer(
+        uint256 weaponPower,
+        uint256 armorPower
+    ) public {
+        join();
+        loot(
+            weaponPower,
+            armorPower
+        );
+    }
+
+    function join() internal {
         uint256 kittyId = IKitty(kittyToken).createKitty(1, 1, 1, 1, address(this));
         IKitty(kittyToken).approve(playerRepo, kittyId);
         IPlayerRepo(playerRepo).addPlayer(kittyId, msg.sender);
@@ -33,7 +44,7 @@ contract Proxy {
     function loot(
         uint256 weaponPower,
         uint256 armorPower
-    ) public {
+    ) internal {
         IItemBase itemFactoryContract = IItemBase(itemFactory);
         uint256 weaponId = itemFactoryContract.forge(ItemTypeDataType.ItemType.WEAPON, weaponPower);
         uint256 armorId = itemFactoryContract.forge(ItemTypeDataType.ItemType.ARMOR, armorPower);

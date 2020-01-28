@@ -20,13 +20,16 @@
     "babel-eslint": "^10.0.3",
     "eslint": "^6.8.0",
     "eslint-config-node-strict": "^0.0.2",
-    "eslint-plugin-import": "^2.20.0"
+    "eslint-plugin-import": "^2.20.0",
+    "truffle-plugin-topup": "0.0.1"
   },
   "scripts": {
     "test:contracts": "node --require ./mocha-require.js ./node_modules/.bin/truffle test",
     "lint:js": "eslint --ext .js ./test",
     "test": "yarn lint:js && yarn test:contracts",
-    "ganache": "node ./node_modules/.bin/ganache-cli"
+    "migrate": "node ./node_modules/.bin/truffle migrate --network dev",
+    "ganache": "node ./node_modules/.bin/ganache-cli",
+    "topup": "./node_modules/.bin/truffle --network dev run topup"
   },
   "author": "",
   "license": "ISC"
