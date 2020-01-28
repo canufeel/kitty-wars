@@ -49,7 +49,7 @@ contract ItemBase is ItemTypeDataType {
             power
         );
 
-        _transfer(address (0), msg.sender, itemId);
+        _transfer(address(0), msg.sender, itemId);
 
         return itemId;
     }
